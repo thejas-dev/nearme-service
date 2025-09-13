@@ -53,10 +53,10 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   }
 
   @override
-  Future<bool> connect(String deviceAddress) async {
+  Future<bool> connect(String deviceAddress, bool isGroupOwner) async {
     final result = await methodChannel.invokeMethod(
       "connect",
-      {"deviceAddress": deviceAddress},
+      {"deviceAddress": deviceAddress, "isGroupOwner": isGroupOwner},
     );
     return ResultHandler.instance.handle<bool?>(result) ?? false;
   }
@@ -71,6 +71,41 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   Future<bool> cancelConnect() async {
     final result = await methodChannel.invokeMethod("cancelConnect");
     return ResultHandler.instance.handle<bool?>(result) ?? false;
+  }
+
+  @override
+  Future<bool> createGroup() async {
+    final result = await methodChannel.invokeMethod("createGroup");
+    return ResultHandler.instance.handle<bool?>(result) ?? false;
+  }
+
+  @override
+  Future<bool> removeGroup() async {
+    final result = methodChannel.invokeMethod("removeGroup");
+    return ResultHandler.instance.handle<bool?>(result) ?? false;
+  }
+
+  @override
+  Future<dynamic> addLocalService(serviceName, serviceType, txtRecord) async {
+    final result = methodChannel.invokeMethod("addLocalService", {
+      "serviceName": serviceName,
+      "serviceType": serviceType,
+      "txtRecord": txtRecord,
+    });
+    return ResultHandler.instance.handle<dynamic>(result) ?? false;
+  }
+
+  @override
+  Future<dynamic> removeLocalServices() async {
+    final result = methodChannel.invokeMethod("removeLocalServices");
+    return ResultHandler.instance.handle<dynamic>(result) ?? false;
+  }
+
+  @override
+  Future renameDevice(String newName) {
+    // TODO: implement renameDevice
+    final result = methodChannel.invokeMethod("renameDevice");
+    return ResultHandler.instance.handle<dynamic>(result) ?? false;
   }
 
   @override

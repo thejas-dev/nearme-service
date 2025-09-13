@@ -45,6 +45,11 @@ class NearbyAndroidService extends NearbyService {
     return NearbyServiceAndroidPlatform.instance.discover();
   }
 
+  @override
+  Future<NearbyConnectionAndroidInfo?> getWifiInformation() async {
+    return await getConnectionInfo();
+  }
+
   ///
   /// Stops discovery of the Wifi Direct network.
   ///
@@ -62,15 +67,16 @@ class NearbyAndroidService extends NearbyService {
   @override
   Future<bool> connect(NearbyDevice device) {
     _requireAndroidDevice(device);
-    return NearbyServiceAndroidPlatform.instance.connect(device.info.id);
+    return NearbyServiceAndroidPlatform.instance.connect(device.info.id, false);
   }
 
   ///
   /// Connects to the [deviceId] on the Wifi Direct network.
   ///
   @override
-  Future<bool> connectById(String deviceId) {
-    return NearbyServiceAndroidPlatform.instance.connect(deviceId);
+  Future<bool> connectById(String deviceId, bool isGroupOwner) {
+    return NearbyServiceAndroidPlatform.instance
+        .connect(deviceId, isGroupOwner);
   }
 
   ///
@@ -178,5 +184,31 @@ class NearbyAndroidService extends NearbyService {
       device is NearbyAndroidDevice,
       'The Nearby Android Service can only work with the NearbyAndroidDevice and not with ${device.runtimeType}',
     );
+  }
+
+  @override
+  Future<bool> createGroup() {
+    return NearbyServiceAndroidPlatform.instance.createGroup();
+  }
+
+  @override
+  Future<bool> removeGroup() {
+    return NearbyServiceAndroidPlatform.instance.removeGroup();
+  }
+
+  @override
+  Future<dynamic> addLocalService(serviceName, serviceType, txtRecord) {
+    return NearbyServiceAndroidPlatform.instance
+        .addLocalService(serviceName, serviceType, txtRecord);
+  }
+
+  @override
+  Future<dynamic> removeLocalServices() {
+    return NearbyServiceAndroidPlatform.instance.removeLocalServices();
+  }
+
+  @override
+  Future<dynamic> renameDevice(String newName) {
+    return NearbyServiceAndroidPlatform.instance.renameDevice(newName);
   }
 }

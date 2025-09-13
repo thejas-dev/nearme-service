@@ -202,7 +202,7 @@ class _AppBodyState extends State<AppBody> {
   Future<void> _connect(NearbyDevice device) async {
     // Be careful with already connected devices,
     // double connection may be unnecessary
-    final result = await _nearbyService.connectById(device.info.id);
+    final result = await _nearbyService.connectById(device.info.id, false);
     if (result || device.status.isConnected) {
       final channelStarting = _tryCommunicate(device);
       if (!channelStarting) {

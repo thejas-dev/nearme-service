@@ -48,6 +48,12 @@ abstract class NearbyServicePlatform extends PlatformInterface {
     throw UnimplementedError('streamPeers() has not been implemented.');
   }
 
+  /// Stream of discovered Wi-Fi Direct services
+  Stream<List<Map<dynamic, dynamic>>> getServiceDiscoveryStream() {
+    throw UnimplementedError(
+        'getServiceDiscoveryStream() has not been implemented.');
+  }
+
   @Deprecated('Use getConnectedDeviceStreamById instead')
   Stream<NearbyDevice?> getConnectedDeviceStream(NearbyDevice device) {
     throw UnimplementedError(

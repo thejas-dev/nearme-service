@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:nearby_service/nearby_service.dart';
+import 'package:nearby_service/src/utils/logger.dart';
 
 import 'nearby_service_platform_interface.dart';
 import 'src/utils/result_handler.dart';
@@ -50,6 +53,23 @@ class MethodChannelNearbyService extends NearbyServicePlatform {
     return peersChannel.receiveBroadcastStream().map((e) {
       final updatedResult = ResultHandler.instance.handle(e);
       return NearbyDeviceMapper.instance.mapToDeviceList(updatedResult);
+    });
+  }
+
+  @override
+  Stream<List<Map<dynamic, dynamic>>> getServiceDiscoveryStream() {
+    const serviceDiscoveryChannel = EventChannel("p2p_nearby_service");
+    return serviceDiscoveryChannel.receiveBroadcastStream().map((e) {
+      final updatedResult = ResultHandler.instance.handle(e);
+      Logger.info(
+          "ServiceDiscoveryStream: $updatedResult ${updatedResult.runtimeType}");
+      if (updatedResult is List) {
+        return List<Map<String, dynamic>>.from(updatedResult);
+      } else if (updatedResult is Map) {
+        return [updatedResult];
+      } else {
+        return [];
+      }
     });
   }
 

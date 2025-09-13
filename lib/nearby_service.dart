@@ -161,6 +161,10 @@ abstract class NearbyService {
     return NearbyServicePlatform.instance.getPeersStream();
   }
 
+  Stream<List<Map<dynamic, dynamic>>> getServiceDiscoveryStream() {
+    return NearbyServicePlatform.instance.getServiceDiscoveryStream();
+  }
+
   ///
   /// Returns the  constantly updating [NearbyDevice] you are currently connected to.
   /// If it returns null, then there is no connection at the moment.
@@ -255,7 +259,7 @@ abstract class NearbyService {
   /// 4. [NearbyServiceGenericErrorException]
   /// 5. [NearbyServiceUnknownException]
   ///
-  Future<bool> connectById(String deviceId);
+  Future<bool> connectById(String deviceId, bool isGroupOwner);
 
   ///
   /// Disconnects from passed [device] using a platform-specific service.
@@ -328,6 +332,19 @@ abstract class NearbyService {
   /// Method to send data to the created communication channel.
   ///
   FutureOr<bool> send(OutgoingNearbyMessage message);
+
+  Future<NearbyConnectionAndroidInfo?> getWifiInformation();
+
+  Future<bool> createGroup();
+
+  Future<bool> removeGroup();
+
+  Future<dynamic> addLocalService(
+      String serviceName, String serviceType, Map<String, String> txtRecord);
+
+  Future<dynamic> removeLocalServices();
+
+  Future<dynamic> renameDevice(String newName);
 }
 
 extension NearbyServiceGetterExtension on NearbyService {

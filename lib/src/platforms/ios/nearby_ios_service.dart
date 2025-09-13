@@ -139,7 +139,7 @@ class NearbyDarwinService extends NearbyService {
   @override
   Future<bool> connect(NearbyDevice device) async {
     _requireIOSDevice(device);
-    return connectById(device.info.id);
+    return connectById(device.info.id, false);
   }
 
   ///
@@ -149,7 +149,7 @@ class NearbyDarwinService extends NearbyService {
   /// Accepts invite from [deviceId] if [isBrowserValue] is false.
   ///
   @override
-  Future<bool> connectById(String deviceId) async {
+  Future<bool> connectById(String deviceId, bool isGroupOwner) async {
     final result = _isBrowser.value
         ? await NearbyServiceIOSPlatform.instance.invite(deviceId)
         : await NearbyServiceIOSPlatform.instance.acceptInvite(deviceId);
@@ -325,5 +325,35 @@ class NearbyDarwinService extends NearbyService {
       device is NearbyDarwinDevice,
       'The Nearby IOS Service can only work with the NearbyDarwinDevice and not with ${device.runtimeType}',
     );
+  }
+
+  @override
+  Future<NearbyConnectionAndroidInfo?> getWifiInformation() async {
+    return null;
+  }
+
+  @override
+  Future<bool> createGroup() {
+    throw false;
+  }
+
+  @override
+  Future<bool> removeGroup() {
+    throw false;
+  }
+
+  @override
+  Future<dynamic> addLocalService(serviceName, serviceType, txtRecord) {
+    throw false;
+  }
+
+  @override
+  Future<dynamic> removeLocalServices() {
+    throw false;
+  }
+
+  @override
+  Future<dynamic> renameDevice(String newName) {
+    throw false;
   }
 }

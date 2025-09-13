@@ -60,6 +60,12 @@ class MockNearbyServicePlatform
     // TODO: implement getCurrentDevice
     throw UnimplementedError();
   }
+
+  @override
+  Stream<List<Map<String, dynamic>>> getServiceDiscoveryStream() {
+    // TODO: implement getServiceDiscoveryStream
+    throw UnimplementedError();
+  }
 }
 
 void main() {

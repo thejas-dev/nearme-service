@@ -158,7 +158,7 @@ class AppService extends ChangeNotifier {
 
   Future<void> connect(NearbyDevice device) async {
     try {
-      await _nearbyService.connectById(device.info.id);
+      await _nearbyService.connectById(device.info.id, false);
     } on NearbyServiceBusyException catch (_) {
       _logBusyException();
     } catch (e, s) {

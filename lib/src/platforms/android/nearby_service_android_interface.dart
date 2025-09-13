@@ -47,8 +47,16 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('stopDiscovery() has not been implemented.');
   }
 
-  Future<bool> connect(String deviceAddress) {
+  Future<bool> connect(String deviceAddress, bool isGroupOwner) {
     throw UnimplementedError('connect() has not been implemented.');
+  }
+
+  Future<bool> createGroup() {
+    throw UnimplementedError('createGroup() has not been implemented.');
+  }
+
+  Future<bool> removeGroup() {
+    throw UnimplementedError('removeGroup() has not been implemented.');
   }
 
   Future<bool> disconnect() {
@@ -63,5 +71,18 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError(
       'getConnectionInfoStream() has not been implemented.',
     );
+  }
+
+  Future<dynamic> addLocalService(
+      String serviceName, String serviceType, Map<String, String> txtRecord) {
+    throw UnimplementedError('addLocalService() has not been implemented.');
+  }
+
+  Future<dynamic> removeLocalServices() {
+    throw UnimplementedError('removeLocalServices() has not been implemented.');
+  }
+
+  Future<dynamic> renameDevice(String newName) {
+    throw UnimplementedError('renameDevice() has not been implemented.');
   }
 }

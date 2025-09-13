@@ -13,35 +13,34 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-
 const val CHANNEL_NAME = "nearby_service"
 const val PEERS_CHANNEL_NAME = "nearby_service_peers"
+const val P2P_SERVICE_CHANNEL_NAME = "p2p_nearby_service"
 const val CONNECTED_DEVICE_CHANNEL_NAME = "nearby_service_connected_device"
 const val CONNECTION_INFO_CHANNEL_NAME = "nearby_service_connection_info"
 
-/**
- * Plugin for creating connections in the Wi-fi Direct scope.
- */
+/** Plugin for creating connections in the Wi-fi Direct scope. */
 class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var binaryMessenger: BinaryMessenger
     private lateinit var channel: MethodChannel
     private lateinit var manager: NearbyServiceManager
     private lateinit var peersChannel: EventChannel
+    private lateinit var p2pServiceChannel: EventChannel
     private lateinit var connectedDeviceChannel: EventChannel
     private lateinit var connectionInfoChannel: EventChannel
 
-
     @OptIn(DelicateCoroutinesApi::class)
     override fun onMethodCall(call: MethodCall, result: Result) {
+        print("Came here 123")
+        var groupOwner = call.argument("isGroupOwner") ?: false
+        Logger.i("Is Group Owner: ${groupOwner} call method: ${call.method}")
         when (call.method) {
             "getPlatformVersion" -> {
                 result.success("Android ${android.os.Build.VERSION.RELEASE}")
             }
-
             "getPlatformModel" -> {
                 result.success(android.os.Build.MODEL)
             }
-
             "initialize" -> {
                 try {
                     manager.initialize(result, call.argument("logLevel") ?: "DEBUG")
@@ -49,7 +48,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
             "requestPermissions" -> {
                 GlobalScope.launch {
                     try {
@@ -59,17 +57,13 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
             }
-
             "getCurrentDevice" -> {
                 try {
                     manager.getCurrentDevice(result)
                 } catch (e: Exception) {
                     onError(result, e)
                 }
-
             }
-
-
             "checkWifiService" -> {
                 try {
                     manager.checkWifiService(result)
@@ -77,7 +71,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
             "openServicesSettings" -> {
                 try {
                     manager.openWifiSettings(result)
@@ -85,8 +78,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
-
             "discover" -> {
                 try {
                     manager.discover(result)
@@ -94,8 +85,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
-
             "stopDiscovery" -> {
                 try {
                     manager.stopDiscovery(result)
@@ -103,7 +92,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
             "getPeers" -> {
                 try {
                     manager.getPeers(result)
@@ -111,7 +99,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
             "getConnectionInfo" -> {
                 try {
                     manager.getConnectionInfo(result)
@@ -119,15 +106,43 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
-            "connect" -> {
+            "addLocalService" -> {
                 try {
-                    manager.connect(result, call.argument("deviceAddress") ?: "")
+                    manager.addLocalService(
+                            result,
+                            call.argument("serviceName") ?: "",
+                            call.argument("serviceType") ?: "",
+                            call.argument("txtRecord") ?: mapOf<String, String>()
+                    )
                 } catch (e: Exception) {
                     onError(result, e)
                 }
             }
-
+            "renameDevice" -> {
+                try {
+                    manager.renameDevice(result, call.argument("deviceName") ?: "")
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "removeLocalServices" -> {
+                try {
+                    manager.removeLocalServices(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "connect" -> {
+                try {
+                    manager.connect(
+                            result,
+                            call.argument("deviceAddress") ?: "",
+                            call.argument("isGroupOwner") ?: false
+                    )
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             "disconnect" -> {
                 try {
                     manager.disconnect(result)
@@ -135,7 +150,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
             "cancelConnect" -> {
                 try {
                     manager.cancelConnect(result)
@@ -143,7 +157,20 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-
+            "createGroup" -> {
+                try {
+                    manager.createGroup(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "removeGroup" -> {
+                try {
+                    manager.removeGroup(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             else -> {
                 result.notImplemented()
             }
@@ -165,13 +192,15 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         peersChannel = EventChannel(binaryMessenger, PEERS_CHANNEL_NAME)
         peersChannel.setStreamHandler(manager.peersHandler)
 
+        p2pServiceChannel = EventChannel(binaryMessenger, P2P_SERVICE_CHANNEL_NAME)
+        p2pServiceChannel.setStreamHandler(manager.p2pServiceHandler)
+
         connectedDeviceChannel = EventChannel(binaryMessenger, CONNECTED_DEVICE_CHANNEL_NAME)
         connectedDeviceChannel.setStreamHandler(manager.connectedDeviceInfoHandler)
 
         connectionInfoChannel = EventChannel(binaryMessenger, CONNECTION_INFO_CHANNEL_NAME)
         connectionInfoChannel.setStreamHandler(manager.connectionInfoHandler)
     }
-
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
