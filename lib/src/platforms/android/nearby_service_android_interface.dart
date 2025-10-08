@@ -43,6 +43,36 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('discover() has not been implemented.');
   }
 
+  /// Starts fast peer discovery on a specific frequency channel.
+  /// This is significantly faster than full-band discovery as it only scans one channel.
+  ///
+  /// Requires API level 33+ and channel-constrained discovery support.
+  /// Use [isChannelConstrainedDiscoverySupported] to check support before calling.
+  ///
+  /// Recommended frequencies for 5GHz:
+  /// - 5200 MHz (Channel 40)
+  /// - 5220 MHz (Channel 44)
+  /// - 5240 MHz (Channel 48)
+  ///
+  /// [frequencyMhz] The frequency in MHz to scan (e.g., 5200 for Channel 40).
+  /// 
+  /// Returns true if discovery started successfully, false otherwise.
+  Future<bool> discoverPeersOnFrequency(int frequencyMhz) {
+    throw UnimplementedError('discoverPeersOnFrequency() has not been implemented.');
+  }
+
+  /// Checks if channel-constrained discovery is supported on this device.
+  /// This feature is required for [discoverPeersOnFrequency] to work.
+  ///
+  /// Requires API level 33+.
+  /// 
+  /// Returns true if supported, false otherwise.
+  Future<bool> isChannelConstrainedDiscoverySupported() {
+    throw UnimplementedError(
+      'isChannelConstrainedDiscoverySupported() has not been implemented.',
+    );
+  }
+
   Future<bool> stopDiscovery() {
     throw UnimplementedError('stopDiscovery() has not been implemented.');
   }
@@ -84,39 +114,5 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
 
   Future<dynamic> renameDevice(String newName) {
     throw UnimplementedError('renameDevice() has not been implemented.');
-  }
-
-  /// Adds a service request to discover specific services.
-  /// 
-  /// [serviceType] Type of the service to discover (e.g., "_presence._tcp").
-  /// If null, discovers all DNS-SD services.
-  Future<dynamic> addServiceRequest(String? serviceType) {
-    throw UnimplementedError('addServiceRequest() has not been implemented.');
-  }
-
-  /// Removes all service requests added by addServiceRequest.
-  Future<dynamic> removeServiceRequests() {
-    throw UnimplementedError('removeServiceRequests() has not been implemented.');
-  }
-
-  /// Starts discovery for services in Wi-Fi Direct scope.
-  /// 
-  /// This discovers only devices that match the service requests added via addServiceRequest.
-  /// You must call addServiceRequest before calling this method, or you'll get a NO_SERVICE_REQUESTS error.
-  Future<bool> discoverServices() {
-    throw UnimplementedError('discoverServices() has not been implemented.');
-  }
-
-  /// Stops service discovery.
-  Future<bool> stopServiceDiscovery() {
-    throw UnimplementedError('stopServiceDiscovery() has not been implemented.');
-  }
-
-  /// Sets up DNS-SD response listeners to receive discovered services.
-  /// 
-  /// This is useful when you want to manually control service discovery
-  /// instead of using the EventChannel stream.
-  Future<bool> setServiceResponseListeners() {
-    throw UnimplementedError('setServiceResponseListeners() has not been implemented.');
   }
 }

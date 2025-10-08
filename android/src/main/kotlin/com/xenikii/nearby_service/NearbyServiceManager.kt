@@ -397,6 +397,101 @@ class NearbyServiceManager(private var context: Context) {
         }
     }
 
+    /**
+     * Start fast peer discovery on a specific frequency channel.
+     * This is significantly faster than full-band discovery as it only scans one channel.
+     *
+     * Requires API level 33+ and channel-constrained discovery support.
+     * Use [isChannelConstrainedDiscoverySupported] to check support before calling.
+     *
+     * Recommended frequencies for 5GHz:
+     * - 5200 MHz (Channel 40)
+     * - 5220 MHz (Channel 44)
+     * - 5240 MHz (Channel 48)
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * @param frequencyMhz The frequency in MHz to scan (e.g., 5200 for Channel 40).
+     */
+    fun discoverPeersOnFrequency(result: Result, frequencyMhz: Int) {
+        if (!checkInitialization(result)) return
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            result.error(
+                    "API_NOT_SUPPORTED",
+                    "discoverPeersOnSpecificFrequency requires API level 33+",
+                    null
+            )
+            return
+        }
+
+        try {
+            // Check if channel-constrained discovery is supported
+            wifiManager.isChannelConstrainedDiscoverySupported { isSupported ->
+                if (!isSupported) {
+                    Logger.w("Channel-constrained discovery not supported, falling back to normal discovery")
+                    // Fallback to regular discovery
+                    discover(result)
+                    return@isChannelConstrainedDiscoverySupported
+                }
+
+                // Use frequency-specific discovery
+                try {
+                    wifiManager.discoverPeersOnSpecificFrequency(
+                            wifiChannel,
+                            frequencyMhz,
+                            getActionListener(
+                                    result,
+                                    "Fast discovery started on $frequencyMhz MHz",
+                                    "Fast discovery failed on $frequencyMhz MHz"
+                            )
+                    )
+                } catch (e: SecurityException) {
+                    if (!permissionsHandler.checkPermissions()) {
+                        Logger.e("No permission to call 'discoverPeersOnFrequency'")
+                        permissionsHandler.requestPermissions()
+                    }
+                } catch (e: UnsupportedOperationException) {
+                    Logger.w("Channel-constrained discovery threw UnsupportedOperationException, falling back")
+                    discover(result)
+                }
+            }
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to check channel-constrained discovery support")
+                permissionsHandler.requestPermissions()
+            }
+        } catch (e: Exception) {
+            result.error("ERROR", "Unexpected error: ${e.message}", null)
+        }
+    }
+
+    /**
+     * Checks if channel-constrained discovery is supported on this device.
+     * This feature is required for [discoverPeersOnFrequency] to work.
+     *
+     * Requires API level 33+.
+     */
+    fun isChannelConstrainedDiscoverySupported(result: Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            result.success(false)
+            return
+        }
+
+        if (!checkInitialization(result)) return
+
+        try {
+            wifiManager.isChannelConstrainedDiscoverySupported { isSupported ->
+                result.success(isSupported)
+            }
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to check channel-constrained discovery support")
+                permissionsHandler.requestPermissions()
+            }
+            result.success(false)
+        }
+    }
+
     /** Stop discovery for peers in Wi-fi Direct scope. */
     fun stopDiscovery(result: Result) {
         if (!checkInitialization(result)) return

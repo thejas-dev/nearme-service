@@ -85,6 +85,23 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
+            "discoverPeersOnFrequency" -> {
+                try {
+                    manager.discoverPeersOnFrequency(
+                            result,
+                            call.argument("frequencyMhz") ?: 5200
+                    )
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "isChannelConstrainedDiscoverySupported" -> {
+                try {
+                    manager.isChannelConstrainedDiscoverySupported(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             "stopDiscovery" -> {
                 try {
                     manager.stopDiscovery(result)
