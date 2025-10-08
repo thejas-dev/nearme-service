@@ -132,6 +132,44 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
+            "addServiceRequest" -> {
+                try {
+                    manager.addServiceRequest(
+                            result,
+                            call.argument("serviceType")
+                    )
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "removeServiceRequests" -> {
+                try {
+                    manager.removeServiceRequests(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "discoverServices" -> {
+                try {
+                    manager.discoverServices(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "stopServiceDiscovery" -> {
+                try {
+                    manager.stopServiceDiscovery(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "setServiceResponseListeners" -> {
+                try {
+                    manager.setServiceResponseListeners(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             "connect" -> {
                 try {
                     manager.connect(

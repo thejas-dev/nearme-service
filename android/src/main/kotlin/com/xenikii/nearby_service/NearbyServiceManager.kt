@@ -206,6 +206,173 @@ class NearbyServiceManager(private var context: Context) {
     }
 
     /**
+     * Adds a service request to discover specific services.
+     * This allows you to filter discovered devices to only those advertising your service.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * @param serviceType Type of the service to discover (e.g., "_presence._tcp").
+     *                    If null or empty, discovers all DNS-SD services.
+     */
+    fun addServiceRequest(result: Result, serviceType: String?) {
+        if (!checkInitialization(result)) return
+
+        try {
+            val serviceRequest = if (serviceType.isNullOrEmpty()) {
+                // Discover all DNS-SD services
+                WifiP2pDnsSdServiceRequest.newInstance()
+            } else {
+                // Discover specific service type
+                WifiP2pDnsSdServiceRequest.newInstance(serviceType)
+            }
+
+            wifiManager.addServiceRequest(
+                    wifiChannel,
+                    serviceRequest,
+                    getActionListener(
+                            result,
+                            "Service request added successfully for type: ${serviceType ?: "all services"}",
+                            "Failed to add service request"
+                    )
+            )
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'addServiceRequest'")
+                permissionsHandler.requestPermissions()
+            }
+        }
+    }
+
+    /**
+     * Removes all service requests added by [addServiceRequest].
+     */
+    fun removeServiceRequests(result: Result) {
+        if (!checkInitialization(result)) return
+
+        try {
+            wifiManager.clearServiceRequests(
+                    wifiChannel,
+                    getActionListener(
+                            result,
+                            "All service requests removed successfully",
+                            "Failed to remove service requests"
+                    )
+            )
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'removeServiceRequests'")
+                permissionsHandler.requestPermissions()
+            }
+        }
+    }
+
+    /**
+     * Start discovery for services in Wi-fi Direct scope.
+     * This discovers only devices that match the service requests added via [addServiceRequest].
+     *
+     * Note! You must call [addServiceRequest] before calling this method, or you'll get
+     * a NO_SERVICE_REQUESTS error.
+     *
+     * Note! You should also set DNS-SD response listeners to receive discovered services.
+     * This is automatically done in the p2pServiceHandler EventChannel.
+     *
+     * Note! All permissions from [NearbyServicePermissionsHandler] are required.
+     */
+    fun discoverServices(result: Result) {
+        if (!checkInitialization(result)) return
+
+        try {
+            wifiManager.discoverServices(
+                    wifiChannel,
+                    getActionListener(
+                            result,
+                            "Service discovery has started successfully!",
+                            "Service discovery starting failed"
+                    )
+            )
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'discoverServices'")
+                permissionsHandler.requestPermissions()
+            }
+        }
+    }
+
+    /**
+     * Stop service discovery.
+     */
+    fun stopServiceDiscovery(result: Result) {
+        if (!checkInitialization(result)) return
+
+        try {
+            // Note: There's no specific stopServiceDiscovery in the API.
+            // Stopping peer discovery also stops service discovery.
+            wifiManager.stopPeerDiscovery(
+                    wifiChannel,
+                    getActionListener(
+                            result,
+                            "Service discovery has successfully stopped",
+                            "Service discovery stopping failed"
+                    )
+            )
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'stopServiceDiscovery'")
+                permissionsHandler.requestPermissions()
+            }
+        }
+    }
+
+    /**
+     * Sets up DNS-SD response listeners to receive discovered services.
+     * This is useful when you want to manually control service discovery
+     * instead of using the EventChannel stream.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     */
+    fun setServiceResponseListeners(result: Result) {
+        if (!checkInitialization(result)) return
+
+        try {
+            // TXT record listener - receives the service TXT record data
+            val txtRecordListener =
+                    WifiP2pManager.DnsSdTxtRecordListener {
+                            fullDomainName,
+                            txtRecordMap,
+                            srcDevice ->
+                        Logger.d(
+                                "TXT record from ${srcDevice.deviceName} (${srcDevice.deviceAddress}): $txtRecordMap"
+                        )
+                    }
+
+            // Service response listener - receives basic service information
+            val serviceResponseListener =
+                    WifiP2pManager.DnsSdServiceResponseListener {
+                            instanceName,
+                            registrationType,
+                            srcDevice ->
+                        Logger.d(
+                                "Service discovered: $instanceName (type: $registrationType) from ${srcDevice.deviceName}"
+                        )
+                    }
+
+            // Attach listeners
+            wifiManager.setDnsSdResponseListeners(
+                    wifiChannel,
+                    serviceResponseListener,
+                    txtRecordListener
+            )
+
+            result.success(true)
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'setServiceResponseListeners'")
+                permissionsHandler.requestPermissions()
+            }
+            result.success(false)
+        }
+    }
+
+    /**
      * Start discovery for peers in Wi-fi Direct scope.
      *
      * Note! All permissions from [NearbyServicePermissionsHandler] are required.
