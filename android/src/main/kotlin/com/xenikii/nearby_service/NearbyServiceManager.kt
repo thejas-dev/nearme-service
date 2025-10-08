@@ -426,34 +426,34 @@ class NearbyServiceManager(private var context: Context) {
 
         try {
             // Check if channel-constrained discovery is supported
-            wifiManager.isChannelConstrainedDiscoverySupported { isSupported ->
-                if (!isSupported) {
-                    Logger.w("Channel-constrained discovery not supported, falling back to normal discovery")
-                    // Fallback to regular discovery
-                    discover(result)
-                    return@isChannelConstrainedDiscoverySupported
-                }
+            val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
+            
+            if (!isSupported) {
+                Logger.w("Channel-constrained discovery not supported, falling back to normal discovery")
+                // Fallback to regular discovery
+                discover(result)
+                return
+            }
 
-                // Use frequency-specific discovery
-                try {
-                    wifiManager.discoverPeersOnSpecificFrequency(
-                            wifiChannel,
-                            frequencyMhz,
-                            getActionListener(
-                                    result,
-                                    "Fast discovery started on $frequencyMhz MHz",
-                                    "Fast discovery failed on $frequencyMhz MHz"
-                            )
-                    )
-                } catch (e: SecurityException) {
-                    if (!permissionsHandler.checkPermissions()) {
-                        Logger.e("No permission to call 'discoverPeersOnFrequency'")
-                        permissionsHandler.requestPermissions()
-                    }
-                } catch (e: UnsupportedOperationException) {
-                    Logger.w("Channel-constrained discovery threw UnsupportedOperationException, falling back")
-                    discover(result)
+            // Use frequency-specific discovery
+            try {
+                wifiManager.discoverPeersOnSpecificFrequency(
+                        wifiChannel,
+                        frequencyMhz,
+                        getActionListener(
+                                result,
+                                "Fast discovery started on $frequencyMhz MHz",
+                                "Fast discovery failed on $frequencyMhz MHz"
+                        )
+                )
+            } catch (e: SecurityException) {
+                if (!permissionsHandler.checkPermissions()) {
+                    Logger.e("No permission to call 'discoverPeersOnFrequency'")
+                    permissionsHandler.requestPermissions()
                 }
+            } catch (e: UnsupportedOperationException) {
+                Logger.w("Channel-constrained discovery threw UnsupportedOperationException, falling back")
+                discover(result)
             }
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
@@ -480,9 +480,8 @@ class NearbyServiceManager(private var context: Context) {
         if (!checkInitialization(result)) return
 
         try {
-            wifiManager.isChannelConstrainedDiscoverySupported { isSupported ->
-                result.success(isSupported)
-            }
+            val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
+            result.success(isSupported)
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
                 Logger.e("No permission to check channel-constrained discovery support")
