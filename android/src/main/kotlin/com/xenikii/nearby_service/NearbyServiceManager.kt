@@ -536,6 +536,8 @@ class NearbyServiceManager(private var context: Context) {
             Logger.i("Creating group on specific frequency: $frequencyMhz MHz (API 29+)")
             try {
                 WifiP2pConfig.Builder()
+                    .setNetworkName("DIRECT-mira-${System.currentTimeMillis() % 10000}")
+                    .setPassphrase("mira1234")
                     .setGroupOperatingFrequency(frequencyMhz)
                     .build()
             } catch (e: IllegalArgumentException) {
