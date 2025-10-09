@@ -429,7 +429,7 @@ class NearbyServiceManager(private var context: Context) {
             val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
             
             if (!isSupported) {
-                Logger.w("Channel-constrained discovery not supported, falling back to normal discovery")
+                Logger.i("Channel-constrained discovery not supported, falling back to normal discovery")
                 // Fallback to regular discovery
                 discover(result)
                 return
@@ -452,7 +452,7 @@ class NearbyServiceManager(private var context: Context) {
                     permissionsHandler.requestPermissions()
                 }
             } catch (e: UnsupportedOperationException) {
-                Logger.w("Channel-constrained discovery threw UnsupportedOperationException, falling back")
+                Logger.i("Channel-constrained discovery threw UnsupportedOperationException, falling back")
                 discover(result)
             }
         } catch (e: SecurityException) {
@@ -540,13 +540,13 @@ class NearbyServiceManager(private var context: Context) {
                     .build()
             } catch (e: IllegalArgumentException) {
                 // Invalid frequency, fall back to default
-                Logger.w("Invalid frequency $frequencyMhz MHz, using default config: ${e.message}")
+                Logger.i("Invalid frequency $frequencyMhz MHz, using default config: ${e.message}")
                 WifiP2pConfig()
             }
         } else {
             // Fallback for older Android or when frequency is null
             if (frequencyMhz != null) {
-                Logger.w("setGroupOperatingFrequency requires API 29+, current: ${Build.VERSION.SDK_INT}")
+                Logger.i("setGroupOperatingFrequency requires API 29+, current: ${Build.VERSION.SDK_INT}")
             }
             Logger.i("Creating group with auto frequency selection")
             WifiP2pConfig()
