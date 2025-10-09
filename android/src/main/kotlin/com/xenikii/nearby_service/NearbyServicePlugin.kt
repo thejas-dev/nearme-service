@@ -214,7 +214,8 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             "createGroup" -> {
                 try {
-                    manager.createGroup(result)
+                    val frequencyMhz = call.argument<Int>("frequencyMhz")
+                    manager.createGroup(result, frequencyMhz)
                 } catch (e: Exception) {
                     onError(result, e)
                 }

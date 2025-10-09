@@ -520,16 +520,45 @@ class NearbyServiceManager(private var context: Context) {
         result.success(info)
     }
 
-    fun createGroup(result: Result) {
+    /**
+     * Creates a WiFi Direct group with optional operating frequency.
+     * 
+     * @param result MethodChannel.Result to send the operation result.
+     * @param frequencyMhz Optional operating frequency in MHz (e.g., 5200 for Channel 40).
+     *                     Requires Android 10+ (API 29+) to set specific frequency.
+     *                     If null or unsupported, system chooses frequency automatically.
+     */
+    fun createGroup(result: Result, frequencyMhz: Int? = null) {
         if (!checkInitialization(result)) return
-        val config = WifiP2pConfig()
-        val actionListener =
-                getActionListener(
-                        result,
-                        "Group creation request sent",
-                        "Group creation request failed"
-                )
-        Logger.i("Creating group with config: ${config.groupOwnerIntent}")
+        
+        val config = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && frequencyMhz != null) {
+            // Android 10+ supports setting operating frequency
+            Logger.i("Creating group on specific frequency: $frequencyMhz MHz (API 29+)")
+            try {
+                WifiP2pConfig.Builder()
+                    .setGroupOperatingFrequency(frequencyMhz)
+                    .build()
+            } catch (e: IllegalArgumentException) {
+                // Invalid frequency, fall back to default
+                Logger.w("Invalid frequency $frequencyMhz MHz, using default config: ${e.message}")
+                WifiP2pConfig()
+            }
+        } else {
+            // Fallback for older Android or when frequency is null
+            if (frequencyMhz != null) {
+                Logger.w("setGroupOperatingFrequency requires API 29+, current: ${Build.VERSION.SDK_INT}")
+            }
+            Logger.i("Creating group with auto frequency selection")
+            WifiP2pConfig()
+        }
+        
+        val actionListener = getActionListener(
+            result,
+            "Group created ${if (frequencyMhz != null) "on $frequencyMhz MHz" else "with auto frequency"}",
+            "Group creation failed"
+        )
+        
+        Logger.i("Creating group with config - GroupOwnerIntent: ${config.groupOwnerIntent}, Frequency: ${frequencyMhz ?: "auto"}")
         wifiManager.createGroup(wifiChannel, config, actionListener)
     }
 

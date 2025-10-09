@@ -41,9 +41,7 @@ abstract class NearbyService {
       Logger.debug('Created Nearby Darwin Service');
       return NearbyDarwinService();
     } else {
-      throw NearbyServiceException.unsupportedPlatform(
-        caller: 'getInstance()',
-      );
+      throw NearbyServiceException.unsupportedPlatform(caller: 'getInstance()');
     }
   }
 
@@ -51,17 +49,13 @@ abstract class NearbyService {
   /// Returns [NearbyService] cast as [NearbyDarwinService] if the current
   /// platform is IOS or MacOS. Otherwise, returns null.
   ///
-  late final NearbyDarwinService? darwin = get(
-    onDarwin: (e) => e,
-  );
+  late final NearbyDarwinService? darwin = get(onDarwin: (e) => e);
 
   ///
   /// Returns [NearbyService] cast as [NearbyAndroidService] if the current
   /// platform is Android. Otherwise, returns null.
   ///
-  late final NearbyAndroidService? android = get(
-    onAndroid: (e) => e,
-  );
+  late final NearbyAndroidService? android = get(onAndroid: (e) => e);
 
   ///
   /// **A value to determine the communication channel's status.**
@@ -179,8 +173,9 @@ abstract class NearbyService {
   /// If it returns null, then there is no connection at the moment.
   ///
   Stream<NearbyDevice?> getConnectedDeviceStreamById(String deviceId) {
-    return NearbyServicePlatform.instance
-        .getConnectedDeviceStreamById(deviceId);
+    return NearbyServicePlatform.instance.getConnectedDeviceStreamById(
+      deviceId,
+    );
   }
 
   ///
@@ -335,12 +330,15 @@ abstract class NearbyService {
 
   Future<NearbyConnectionAndroidInfo?> getWifiInformation();
 
-  Future<bool> createGroup();
+  Future<bool> createGroup({int? frequencyMhz});
 
   Future<bool> removeGroup();
 
   Future<dynamic> addLocalService(
-      String serviceName, String serviceType, Map<String, String> txtRecord);
+    String serviceName,
+    String serviceType,
+    Map<String, String> txtRecord,
+  );
 
   Future<dynamic> removeLocalServices();
 

@@ -75,8 +75,10 @@ class NearbyAndroidService extends NearbyService {
   ///
   @override
   Future<bool> connectById(String deviceId, bool isGroupOwner) {
-    return NearbyServiceAndroidPlatform.instance
-        .connect(deviceId, isGroupOwner);
+    return NearbyServiceAndroidPlatform.instance.connect(
+      deviceId,
+      isGroupOwner,
+    );
   }
 
   ///
@@ -187,8 +189,10 @@ class NearbyAndroidService extends NearbyService {
   }
 
   @override
-  Future<bool> createGroup() {
-    return NearbyServiceAndroidPlatform.instance.createGroup();
+  Future<bool> createGroup({int? frequencyMhz}) {
+    return NearbyServiceAndroidPlatform.instance.createGroup(
+      frequencyMhz: frequencyMhz,
+    );
   }
 
   @override
@@ -196,10 +200,28 @@ class NearbyAndroidService extends NearbyService {
     return NearbyServiceAndroidPlatform.instance.removeGroup();
   }
 
+  /// Discover peers on a specific frequency (Fast Discovery)
+  /// Requires Android 13+ (API 33+)
+  Future<bool> discoverPeersOnFrequency(int frequencyMhz) {
+    return NearbyServiceAndroidPlatform.instance.discoverPeersOnFrequency(
+      frequencyMhz,
+    );
+  }
+
+  /// Check if channel-constrained discovery is supported
+  /// Requires Android 13+ (API 33+)
+  Future<bool> isChannelConstrainedDiscoverySupported() {
+    return NearbyServiceAndroidPlatform.instance
+        .isChannelConstrainedDiscoverySupported();
+  }
+
   @override
   Future<dynamic> addLocalService(serviceName, serviceType, txtRecord) {
-    return NearbyServiceAndroidPlatform.instance
-        .addLocalService(serviceName, serviceType, txtRecord);
+    return NearbyServiceAndroidPlatform.instance.addLocalService(
+      serviceName,
+      serviceType,
+      txtRecord,
+    );
   }
 
   @override

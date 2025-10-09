@@ -43,36 +43,6 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('discover() has not been implemented.');
   }
 
-  /// Starts fast peer discovery on a specific frequency channel.
-  /// This is significantly faster than full-band discovery as it only scans one channel.
-  ///
-  /// Requires API level 33+ and channel-constrained discovery support.
-  /// Use [isChannelConstrainedDiscoverySupported] to check support before calling.
-  ///
-  /// Recommended frequencies for 5GHz:
-  /// - 5200 MHz (Channel 40)
-  /// - 5220 MHz (Channel 44)
-  /// - 5240 MHz (Channel 48)
-  ///
-  /// [frequencyMhz] The frequency in MHz to scan (e.g., 5200 for Channel 40).
-  /// 
-  /// Returns true if discovery started successfully, false otherwise.
-  Future<bool> discoverPeersOnFrequency(int frequencyMhz) {
-    throw UnimplementedError('discoverPeersOnFrequency() has not been implemented.');
-  }
-
-  /// Checks if channel-constrained discovery is supported on this device.
-  /// This feature is required for [discoverPeersOnFrequency] to work.
-  ///
-  /// Requires API level 33+.
-  /// 
-  /// Returns true if supported, false otherwise.
-  Future<bool> isChannelConstrainedDiscoverySupported() {
-    throw UnimplementedError(
-      'isChannelConstrainedDiscoverySupported() has not been implemented.',
-    );
-  }
-
   Future<bool> stopDiscovery() {
     throw UnimplementedError('stopDiscovery() has not been implemented.');
   }
@@ -81,7 +51,14 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('connect() has not been implemented.');
   }
 
-  Future<bool> createGroup() {
+  /// Creates a WiFi Direct group with optional operating frequency.
+  ///
+  /// [frequencyMhz] Operating frequency in MHz (e.g., 5200, 5220, 5240).
+  /// Requires Android 10+ (API 29+) to set specific frequency.
+  /// If null or unsupported, system chooses frequency automatically.
+  ///
+  /// Returns true if group creation started successfully, false otherwise.
+  Future<bool> createGroup({int? frequencyMhz}) {
     throw UnimplementedError('createGroup() has not been implemented.');
   }
 
@@ -114,5 +91,40 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
 
   Future<dynamic> renameDevice(String newName) {
     throw UnimplementedError('renameDevice() has not been implemented.');
+  }
+
+  /// Adds a service request to discover specific services.
+  /// This allows you to filter discovered devices to only those advertising your service.
+  ///
+  /// [serviceType] Type of the service to discover (e.g., "_presence._tcp").
+  ///               If null or empty, discovers all DNS-SD services.
+  Future<dynamic> addServiceRequest(String? serviceType) {
+    throw UnimplementedError('addServiceRequest() has not been implemented.');
+  }
+
+  /// Removes all service requests added by [addServiceRequest].
+  Future<dynamic> removeServiceRequests() {
+    throw UnimplementedError(
+        'removeServiceRequests() has not been implemented.');
+  }
+
+  /// Start discovery for services in Wi-fi Direct scope.
+  /// This discovers only devices that match the service requests added via [addServiceRequest].
+  ///
+  /// Note: You must call [addServiceRequest] before calling this method.
+  Future<bool> discoverServices() {
+    throw UnimplementedError('discoverServices() has not been implemented.');
+  }
+
+  /// Stop service discovery.
+  Future<bool> stopServiceDiscovery() {
+    throw UnimplementedError(
+        'stopServiceDiscovery() has not been implemented.');
+  }
+
+  /// Sets up DNS-SD response listeners to receive discovered services.
+  Future<bool> setServiceResponseListeners() {
+    throw UnimplementedError(
+        'setServiceResponseListeners() has not been implemented.');
   }
 }
