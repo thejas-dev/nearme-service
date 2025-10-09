@@ -47,6 +47,23 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   }
 
   @override
+  Future<bool> discoverPeersOnFrequency(int frequencyMhz) async {
+    final result = await methodChannel.invokeMethod(
+      'discoverPeersOnFrequency',
+      {'frequencyMhz': frequencyMhz},
+    );
+    return ResultHandler.instance.handle<bool?>(result) ?? false;
+  }
+
+  @override
+  Future<bool> isChannelConstrainedDiscoverySupported() async {
+    final result = await methodChannel.invokeMethod(
+      'isChannelConstrainedDiscoverySupported',
+    );
+    return ResultHandler.instance.handle<bool?>(result) ?? false;
+  }
+
+  @override
   Future<bool> stopDiscovery() async {
     final result = await methodChannel.invokeMethod('stopDiscovery');
     return ResultHandler.instance.handle<bool?>(result) ?? false;
