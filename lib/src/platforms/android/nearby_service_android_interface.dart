@@ -81,7 +81,10 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   }
 
   Future<dynamic> addLocalService(
-      String serviceName, String serviceType, Map<String, String> txtRecord) {
+    String serviceName,
+    String serviceType,
+    Map<String, String> txtRecord,
+  ) {
     throw UnimplementedError('addLocalService() has not been implemented.');
   }
 
@@ -105,7 +108,8 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   /// Removes all service requests added by [addServiceRequest].
   Future<dynamic> removeServiceRequests() {
     throw UnimplementedError(
-        'removeServiceRequests() has not been implemented.');
+      'removeServiceRequests() has not been implemented.',
+    );
   }
 
   /// Start discovery for services in Wi-fi Direct scope.
@@ -119,13 +123,15 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   /// Stop service discovery.
   Future<bool> stopServiceDiscovery() {
     throw UnimplementedError(
-        'stopServiceDiscovery() has not been implemented.');
+      'stopServiceDiscovery() has not been implemented.',
+    );
   }
 
   /// Sets up DNS-SD response listeners to receive discovered services.
   Future<bool> setServiceResponseListeners() {
     throw UnimplementedError(
-        'setServiceResponseListeners() has not been implemented.');
+      'setServiceResponseListeners() has not been implemented.',
+    );
   }
 
   /// Starts fast peer discovery on a specific frequency channel.
@@ -140,19 +146,23 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   /// - 5240 MHz (Channel 48)
   ///
   /// [frequencyMhz] The frequency in MHz to scan (e.g., 5200 for Channel 40).
-  /// 
+  ///
   /// Returns true if discovery started successfully, false otherwise.
   Future<bool> discoverPeersOnFrequency(int frequencyMhz) {
-    throw UnimplementedError('discoverPeersOnFrequency() has not been implemented.');
+    throw UnimplementedError(
+      'discoverPeersOnFrequency() has not been implemented.',
+    );
   }
 
   /// Checks if channel-constrained discovery is supported on this device.
   /// This feature is required for [discoverPeersOnFrequency] to work.
   ///
   /// Requires API level 33+.
-  /// 
+  ///
   /// Returns true if supported, false otherwise.
   Future<bool> isChannelConstrainedDiscoverySupported() {
-    throw UnimplementedError('isChannelConstrainedDiscoverySupported() has not been implemented.');
+    throw UnimplementedError(
+      'isChannelConstrainedDiscoverySupported() has not been implemented.',
+    );
   }
 }
