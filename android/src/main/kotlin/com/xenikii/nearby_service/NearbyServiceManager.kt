@@ -472,23 +472,61 @@ class NearbyServiceManager(private var context: Context) {
      * Requires API level 33+.
      */
     fun isChannelConstrainedDiscoverySupported(result: Result) {
+        Logger.i("======== Checking Channel-Constrained Discovery Support ========")
+        Logger.i("Android SDK Version: ${Build.VERSION.SDK_INT} (Required: ${Build.VERSION_CODES.TIRAMISU})")
+        
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Logger.w("Channel-constrained discovery: NOT SUPPORTED - Android version too old (< 13)")
+            Logger.i("Current: API ${Build.VERSION.SDK_INT}, Required: API ${Build.VERSION_CODES.TIRAMISU}+")
             result.success(false)
             return
         }
 
-        if (!checkInitialization(result)) return
+        Logger.i("Android version check: PASSED (API ${Build.VERSION.SDK_INT} >= 33)")
+
+        if (!checkInitialization(result)) {
+            Logger.e("Channel-constrained discovery check FAILED: Service not initialized")
+            return
+        }
 
         try {
+            Logger.i("Calling wifiManager.isChannelConstrainedDiscoverySupported()...")
             val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
+            
+            if (isSupported) {
+                Logger.i("✓ Channel-constrained discovery: SUPPORTED BY DEVICE")
+                Logger.i("Device hardware supports frequency-based discovery")
+            } else {
+                Logger.w("✗ Channel-constrained discovery: NOT SUPPORTED BY DEVICE")
+                Logger.w("Device hardware does not support frequency-based discovery")
+                Logger.w("Reason: Wi-Fi chipset limitation")
+            }
+            
+            Logger.i("Returning result: $isSupported")
             result.success(isSupported)
         } catch (e: SecurityException) {
+            Logger.e("Channel-constrained discovery check FAILED: SecurityException")
+            Logger.e("Exception message: ${e.message}")
+            
             if (!permissionsHandler.checkPermissions()) {
                 Logger.e("No permission to check channel-constrained discovery support")
+                Logger.e("Required permissions: ACCESS_FINE_LOCATION, NEARBY_WIFI_DEVICES")
                 permissionsHandler.requestPermissions()
+            } else {
+                Logger.e("Permissions are granted but SecurityException still occurred")
             }
+            
+            Logger.i("Returning result: false (due to SecurityException)")
+            result.success(false)
+        } catch (e: Exception) {
+            Logger.e("Channel-constrained discovery check FAILED: Unexpected exception")
+            Logger.e("Exception type: ${e.javaClass.simpleName}")
+            Logger.e("Exception message: ${e.message}")
+            Logger.i("Returning result: false (due to exception)")
             result.success(false)
         }
+        
+        Logger.i("================================================================")
     }
 
     /** Stop discovery for peers in Wi-fi Direct scope. */
