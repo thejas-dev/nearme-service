@@ -28,14 +28,20 @@ class NearbyServiceManager(private var context: Context) {
     private var permissionsHandler = NearbyServicePermissionsHandler(context)
     private var activityPluginBinding: ActivityPluginBinding? = null
 
-    /** Sets activity binding for permissions handling. */
+    /**
+     * Sets [binding] to [activityPluginBinding] and [permissionsHandler]. Adds permissions result
+     * listener to [binding].
+     */
     fun setBinding(binding: ActivityPluginBinding) {
         activityPluginBinding = binding
         activityPluginBinding?.addRequestPermissionsResultListener(permissionsHandler)
         permissionsHandler.activity = binding.activity
     }
 
-    /** Removes activity binding. */
+    /**
+     * Removes permissions result listener to [activityPluginBinding]. Sets [activityPluginBinding]
+     * to null.
+     */
     fun removeBinding() {
         activityPluginBinding?.removeRequestPermissionsResultListener(permissionsHandler)
         activityPluginBinding = null
@@ -63,7 +69,14 @@ class NearbyServiceManager(private var context: Context) {
         )
     }
 
-    /** Returns info about current device. */
+    /**
+     * Returns info about a current device in format WifiP2pDevice.toJsonString().
+     *
+     * Note! The field **deviceAddress** will always be 02:00:00:00:00:00 for privacy issues.
+     *
+     * Note! If the SDK version is less than 29 (Q), tries to return a current device from
+     * [receiver]. It also may be null.
+     */
     fun getCurrentDevice(result: Result) {
         if (!checkInitialization(result)) return
 
@@ -77,7 +90,7 @@ class NearbyServiceManager(private var context: Context) {
             }
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
-                Logger.e("No permission to get device info")
+                Logger.e("No permission to call 'getCurrentDevice'")
                 permissionsHandler.requestPermissions()
                 result.success(null)
             }
@@ -90,7 +103,12 @@ class NearbyServiceManager(private var context: Context) {
         result.success(true)
     }
 
-    /** Renames the current Wi-Fi Direct device. */
+    /**
+     * Renames the current Wi-Fi Direct device.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * @param newName New device name to be set.
+     */
     fun renameDevice(result: Result, newName: String) {
         if (!checkInitialization(result)) return
 
@@ -130,7 +148,14 @@ class NearbyServiceManager(private var context: Context) {
         }
     }
 
-    /** Adds a local service for Wi-fi Direct service discovery. */
+    /**
+     * Adds a local service for Wi-fi Direct service discovery.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * @param serviceName Name of the service.
+     * @param serviceType Type of the service (e.g., "_presence._tcp").
+     * @param txtRecord Map of TXT record attributes.
+     */
     fun addLocalService(
             result: Result,
             serviceName: String,
@@ -359,7 +384,7 @@ class NearbyServiceManager(private var context: Context) {
         if (!checkInitialization(result)) return
 
         if (receiver.connectedDevice?.deviceAddress == deviceAddress) {
-            Logger.d("Already connected to $deviceAddress")
+            Logger.i("Already connected to the device $deviceAddress")
             result.success(true)
             return
         }
@@ -377,10 +402,12 @@ class NearbyServiceManager(private var context: Context) {
         )
 
         try {
-            wifiManager.connect(wifiChannel, config, actionListener)
+            wifiChannel.also { wifiChannel: WifiP2pManager.Channel ->
+                wifiManager.connect(wifiChannel, config, actionListener)
+            }
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
-                Logger.e("No permission to connect")
+                Logger.e("No permission to call 'connect'")
                 permissionsHandler.requestPermissions()
             }
         }
@@ -502,6 +529,95 @@ class NearbyServiceManager(private var context: Context) {
         }
     }
 
+    var p2pServiceHandler =
+            object : EventChannel.StreamHandler {
+                private var eventSink: EventChannel.EventSink? = null
+                private var discoveryHandler: Handler? = null
+                private var discoveryRunnable: Runnable? = null
+
+                override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
+                    Logger.d("Start listening service discovery")
+                    eventSink = sink
+
+                    if (!checkInitialization(null, false)) return
+
+                    // TXT record listener
+                    val txtRecordListener =
+                            WifiP2pManager.DnsSdTxtRecordListener {
+                                    fullDomainName,
+                                    txtRecordMap,
+                                    srcDevice ->
+                                Logger.d(
+                                        "TXT record from ${srcDevice.deviceName} (${srcDevice.deviceAddress}): $txtRecordMap"
+                                )
+
+                                val deviceInfo =
+                                        mapOf(
+                                                "deviceName" to srcDevice.deviceName,
+                                                "deviceAddress" to srcDevice.deviceAddress,
+                                                "serviceName" to fullDomainName,
+                                                "txtRecord" to txtRecordMap
+                                        )
+
+                                // Send discovered device info to Flutter
+                                eventSink?.success(deviceInfo)
+                            }
+
+                    // Basic service response listener
+                    val serviceResponseListener =
+                            WifiP2pManager.DnsSdServiceResponseListener {
+                                    instanceName,
+                                    registrationType,
+                                    srcDevice ->
+                                Logger.d(
+                                        "Service discovered: $instanceName from ${srcDevice.deviceName}"
+                                )
+                            }
+
+                    // Attach listeners
+                    wifiManager.setDnsSdResponseListeners(
+                            wifiChannel,
+                            serviceResponseListener,
+                            txtRecordListener
+                    )
+
+                    // Start periodic discovery
+                    val request = WifiP2pDnsSdServiceRequest.newInstance()
+                    wifiManager.addServiceRequest(wifiChannel, request, null)
+
+                    discoveryHandler = Handler(Looper.getMainLooper())
+                    discoveryRunnable =
+                            object : Runnable {
+                                override fun run() {
+                                    wifiManager.discoverServices(
+                                            wifiChannel,
+                                            object : WifiP2pManager.ActionListener {
+                                                override fun onSuccess() {
+                                                    Logger.d("Service discovery started")
+                                                }
+
+                                                override fun onFailure(reason: Int) {
+                                                    Logger.e("Service discovery failed: $reason")
+                                                }
+                                            }
+                                    )
+                                    // Repeat every 25 seconds to keep discovery alive
+                                    discoveryHandler?.postDelayed(this, 25000)
+                                }
+                            }
+                    discoveryHandler?.post(discoveryRunnable!!)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    Logger.d("Stop listening service discovery")
+                    eventSink = null
+                    discoveryHandler?.removeCallbacks(discoveryRunnable!!)
+                    discoveryRunnable = null
+                    discoveryHandler = null
+                    wifiManager.clearServiceRequests(wifiChannel, null)
+                }
+            }
+
     var peersHandler =
             object : EventChannel.StreamHandler {
                 private var handler: Handler = Handler(Looper.getMainLooper())
@@ -519,13 +635,13 @@ class NearbyServiceManager(private var context: Context) {
 
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     onCancel(null)
-                    Logger.d("Peers stream started")
+                    Logger.d("Start listening peers")
                     eventSink = sink
                     handler.postDelayed(postCallback, 1000)
                 }
 
                 override fun onCancel(p0: Any?) {
-                    Logger.d("Peers stream stopped")
+                    Logger.d("Kill last process listening peers")
                     eventSink = null
                     handler.removeCallbacks(postCallback)
                 }
@@ -551,12 +667,12 @@ class NearbyServiceManager(private var context: Context) {
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     onCancel(null)
                     eventSink = sink
-                    Logger.d("Connected device stream started")
+                    Logger.d("Listen connected device")
                     handler.postDelayed(postCallback, 1000)
                 }
 
                 override fun onCancel(p0: Any?) {
-                    Logger.d("Connected device stream stopped")
+                    Logger.d("Kill last process connected device")
                     eventSink = null
                     handler.removeCallbacks(postCallback)
                 }
