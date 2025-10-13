@@ -93,44 +93,6 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('renameDevice() has not been implemented.');
   }
 
-  /// Adds a service request to discover specific services.
-  /// This allows you to filter discovered devices to only those advertising your service.
-  ///
-  /// [serviceType] Type of the service to discover (e.g., "_presence._tcp").
-  ///               If null or empty, discovers all DNS-SD services.
-  Future<dynamic> addServiceRequest(String? serviceType) {
-    throw UnimplementedError('addServiceRequest() has not been implemented.');
-  }
-
-  /// Removes all service requests added by [addServiceRequest].
-  Future<dynamic> removeServiceRequests() {
-    throw UnimplementedError(
-      'removeServiceRequests() has not been implemented.',
-    );
-  }
-
-  /// Start discovery for services in Wi-fi Direct scope.
-  /// This discovers only devices that match the service requests added via [addServiceRequest].
-  ///
-  /// Note: You must call [addServiceRequest] before calling this method.
-  Future<bool> discoverServices() {
-    throw UnimplementedError('discoverServices() has not been implemented.');
-  }
-
-  /// Stop service discovery.
-  Future<bool> stopServiceDiscovery() {
-    throw UnimplementedError(
-      'stopServiceDiscovery() has not been implemented.',
-    );
-  }
-
-  /// Sets up DNS-SD response listeners to receive discovered services.
-  Future<bool> setServiceResponseListeners() {
-    throw UnimplementedError(
-      'setServiceResponseListeners() has not been implemented.',
-    );
-  }
-
   /// Starts fast peer discovery on a specific frequency channel.
   /// This is significantly faster than full-band discovery as it only scans one channel.
   ///

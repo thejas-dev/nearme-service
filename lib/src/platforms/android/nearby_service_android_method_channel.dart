@@ -129,38 +129,6 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   }
 
   @override
-  Future<dynamic> addServiceRequest(String? serviceType) async {
-    final result = await methodChannel.invokeMethod("addServiceRequest", {
-      "serviceType": serviceType,
-    });
-    return ResultHandler.instance.handle<dynamic>(result) ?? false;
-  }
-
-  @override
-  Future<dynamic> removeServiceRequests() async {
-    final result = await methodChannel.invokeMethod("removeServiceRequests");
-    return ResultHandler.instance.handle<dynamic>(result) ?? false;
-  }
-
-  @override
-  Future<bool> discoverServices() async {
-    final result = await methodChannel.invokeMethod("discoverServices");
-    return ResultHandler.instance.handle<bool?>(result) ?? false;
-  }
-
-  @override
-  Future<bool> stopServiceDiscovery() async {
-    final result = await methodChannel.invokeMethod("stopServiceDiscovery");
-    return ResultHandler.instance.handle<bool?>(result) ?? false;
-  }
-
-  @override
-  Future<bool> setServiceResponseListeners() async {
-    final result = await methodChannel.invokeMethod("setServiceResponseListeners");
-    return ResultHandler.instance.handle<bool?>(result) ?? false;
-  }
-
-  @override
   Stream<NearbyConnectionAndroidInfo?> getConnectionInfoStream() {
     const connectedDeviceChannel = EventChannel(
       "nearby_service_connection_info",

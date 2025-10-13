@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 
 const val CHANNEL_NAME = "nearby_service"
 const val PEERS_CHANNEL_NAME = "nearby_service_peers"
-const val P2P_SERVICE_CHANNEL_NAME = "p2p_nearby_service"
 const val CONNECTED_DEVICE_CHANNEL_NAME = "nearby_service_connected_device"
 const val CONNECTION_INFO_CHANNEL_NAME = "nearby_service_connection_info"
 
@@ -25,7 +24,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private lateinit var manager: NearbyServiceManager
     private lateinit var peersChannel: EventChannel
-    private lateinit var p2pServiceChannel: EventChannel
     private lateinit var connectedDeviceChannel: EventChannel
     private lateinit var connectionInfoChannel: EventChannel
 
@@ -149,44 +147,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-            "addServiceRequest" -> {
-                try {
-                    manager.addServiceRequest(
-                            result,
-                            call.argument("serviceType")
-                    )
-                } catch (e: Exception) {
-                    onError(result, e)
-                }
-            }
-            "removeServiceRequests" -> {
-                try {
-                    manager.removeServiceRequests(result)
-                } catch (e: Exception) {
-                    onError(result, e)
-                }
-            }
-            "discoverServices" -> {
-                try {
-                    manager.discoverServices(result)
-                } catch (e: Exception) {
-                    onError(result, e)
-                }
-            }
-            "stopServiceDiscovery" -> {
-                try {
-                    manager.stopServiceDiscovery(result)
-                } catch (e: Exception) {
-                    onError(result, e)
-                }
-            }
-            "setServiceResponseListeners" -> {
-                try {
-                    manager.setServiceResponseListeners(result)
-                } catch (e: Exception) {
-                    onError(result, e)
-                }
-            }
             "connect" -> {
                 try {
                     manager.connect(
@@ -247,9 +207,6 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
         peersChannel = EventChannel(binaryMessenger, PEERS_CHANNEL_NAME)
         peersChannel.setStreamHandler(manager.peersHandler)
-
-        p2pServiceChannel = EventChannel(binaryMessenger, P2P_SERVICE_CHANNEL_NAME)
-        p2pServiceChannel.setStreamHandler(manager.p2pServiceHandler)
 
         connectedDeviceChannel = EventChannel(binaryMessenger, CONNECTED_DEVICE_CHANNEL_NAME)
         connectedDeviceChannel.setStreamHandler(manager.connectedDeviceInfoHandler)

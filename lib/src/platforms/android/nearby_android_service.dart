@@ -228,24 +228,4 @@ class NearbyAndroidService extends NearbyService {
   Future<dynamic> renameDevice(String newName) {
     return NearbyServiceAndroidPlatform.instance.renameDevice(newName);
   }
-
-  /// Add service request for filtering discovery
-  Future<dynamic> addServiceRequest(String? serviceType) {
-    return NearbyServiceAndroidPlatform.instance.addServiceRequest(serviceType);
-  }
-
-  /// Remove all service requests
-  Future<dynamic> removeServiceRequests() {
-    return NearbyServiceAndroidPlatform.instance.removeServiceRequests();
-  }
-
-  /// Discover services (slower, comprehensive)
-  Future<bool> discoverServices() {
-    return NearbyServiceAndroidPlatform.instance.discoverServices();
-  }
-
-  /// Stop service discovery
-  Future<bool> stopServiceDiscovery() {
-    return NearbyServiceAndroidPlatform.instance.stopServiceDiscovery();
-  }
 }
