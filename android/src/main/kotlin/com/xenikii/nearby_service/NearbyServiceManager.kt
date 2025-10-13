@@ -28,20 +28,14 @@ class NearbyServiceManager(private var context: Context) {
     private var permissionsHandler = NearbyServicePermissionsHandler(context)
     private var activityPluginBinding: ActivityPluginBinding? = null
 
-    /**
-     * Sets [binding] to [activityPluginBinding] and [permissionsHandler]. Adds permissions result
-     * listener to [binding].
-     */
+    /** Sets activity binding for permissions handling. */
     fun setBinding(binding: ActivityPluginBinding) {
         activityPluginBinding = binding
         activityPluginBinding?.addRequestPermissionsResultListener(permissionsHandler)
         permissionsHandler.activity = binding.activity
     }
 
-    /**
-     * Removes permissions result listener to [activityPluginBinding]. Sets [activityPluginBinding]
-     * to null.
-     */
+    /** Removes activity binding. */
     fun removeBinding() {
         activityPluginBinding?.removeRequestPermissionsResultListener(permissionsHandler)
         activityPluginBinding = null
@@ -69,14 +63,7 @@ class NearbyServiceManager(private var context: Context) {
         )
     }
 
-    /**
-     * Returns info about a current device in format WifiP2pDevice.toJsonString().
-     *
-     * Note! The field **deviceAddress** will always be 02:00:00:00:00:00 for privacy issues.
-     *
-     * Note! If the SDK version is less than 29 (Q), tries to return a current device from
-     * [receiver]. It also may be null.
-     */
+    /** Returns info about current device. */
     fun getCurrentDevice(result: Result) {
         if (!checkInitialization(result)) return
 
@@ -90,7 +77,7 @@ class NearbyServiceManager(private var context: Context) {
             }
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
-                Logger.e("No permission to call 'getCurrentDevice'")
+                Logger.e("No permission to get device info")
                 permissionsHandler.requestPermissions()
                 result.success(null)
             }
@@ -103,12 +90,7 @@ class NearbyServiceManager(private var context: Context) {
         result.success(true)
     }
 
-    /**
-     * Renames the current Wi-Fi Direct device.
-     *
-     * @param result MethodChannel.Result to send the operation result.
-     * @param newName New device name to be set.
-     */
+    /** Renames the current Wi-Fi Direct device. */
     fun renameDevice(result: Result, newName: String) {
         if (!checkInitialization(result)) return
 
@@ -148,14 +130,7 @@ class NearbyServiceManager(private var context: Context) {
         }
     }
 
-    /**
-     * Adds a local service for Wi-fi Direct service discovery.
-     *
-     * @param result MethodChannel.Result to send the operation result.
-     * @param serviceName Name of the service.
-     * @param serviceType Type of the service (e.g., "_presence._tcp").
-     * @param txtRecord Map of TXT record attributes.
-     */
+    /** Adds a local service for Wi-fi Direct service discovery. */
     fun addLocalService(
             result: Result,
             serviceName: String,
@@ -218,10 +193,8 @@ class NearbyServiceManager(private var context: Context) {
 
         try {
             val serviceRequest = if (serviceType.isNullOrEmpty()) {
-                // Discover all DNS-SD services
                 WifiP2pDnsSdServiceRequest.newInstance()
             } else {
-                // Discover specific service type
                 WifiP2pDnsSdServiceRequest.newInstance(serviceType)
             }
 
@@ -399,28 +372,17 @@ class NearbyServiceManager(private var context: Context) {
 
     /**
      * Start fast peer discovery on a specific frequency channel.
-     * This is significantly faster than full-band discovery as it only scans one channel.
-     *
      * Requires API level 33+ and channel-constrained discovery support.
-     * Use [isChannelConstrainedDiscoverySupported] to check support before calling.
-     *
-     * Recommended frequencies for 5GHz:
-     * - 5200 MHz (Channel 40)
-     * - 5220 MHz (Channel 44)
-     * - 5240 MHz (Channel 48)
      *
      * @param result MethodChannel.Result to send the operation result.
-     * @param frequencyMhz The frequency in MHz to scan (e.g., 5200 for Channel 40).
+     * @param frequencyMhz The frequency in MHz to scan (e.g., 5200, 5220, 5240).
      */
     fun discoverPeersOnFrequency(result: Result, frequencyMhz: Int) {
         if (!checkInitialization(result)) return
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            result.error(
-                    "API_NOT_SUPPORTED",
-                    "discoverPeersOnSpecificFrequency requires API level 33+",
-                    null
-            )
+            Logger.d("Frequency-based discovery requires API 33+, falling back to normal discovery")
+            discover(result)
             return
         }
 
@@ -435,33 +397,26 @@ class NearbyServiceManager(private var context: Context) {
                 return
             }
 
-            // Use frequency-specific discovery
-            try {
-                wifiManager.discoverPeersOnSpecificFrequency(
-                        wifiChannel,
-                        frequencyMhz,
-                        getActionListener(
-                                result,
-                                "Fast discovery started on $frequencyMhz MHz",
-                                "Fast discovery failed on $frequencyMhz MHz"
-                        )
-                )
-            } catch (e: SecurityException) {
-                if (!permissionsHandler.checkPermissions()) {
-                    Logger.e("No permission to call 'discoverPeersOnFrequency'")
-                    permissionsHandler.requestPermissions()
-                }
-            } catch (e: UnsupportedOperationException) {
-                Logger.i("Channel-constrained discovery threw UnsupportedOperationException, falling back")
-                discover(result)
-            }
+            wifiManager.discoverPeersOnSpecificFrequency(
+                    wifiChannel,
+                    frequencyMhz,
+                    getActionListener(
+                            result,
+                            "Discovery started on $frequencyMhz MHz",
+                            "Discovery failed on $frequencyMhz MHz"
+                    )
+            )
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
-                Logger.e("No permission to check channel-constrained discovery support")
+                Logger.e("No permission for frequency-based discovery")
                 permissionsHandler.requestPermissions()
             }
+        } catch (e: UnsupportedOperationException) {
+            Logger.d("Frequency-based discovery not supported, falling back")
+            discover(result)
         } catch (e: Exception) {
-            result.error("ERROR", "Unexpected error: ${e.message}", null)
+            Logger.e("Error in frequency-based discovery: ${e.message}")
+            discover(result)
         }
     }
 
@@ -472,61 +427,28 @@ class NearbyServiceManager(private var context: Context) {
      * Requires API level 33+.
      */
     fun isChannelConstrainedDiscoverySupported(result: Result) {
-        Logger.i("======== Checking Channel-Constrained Discovery Support ========")
-        Logger.i("Android SDK Version: ${Build.VERSION.SDK_INT} (Required: ${Build.VERSION_CODES.TIRAMISU})")
-        
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            Logger.w("Channel-constrained discovery: NOT SUPPORTED - Android version too old (< 13)")
-            Logger.i("Current: API ${Build.VERSION.SDK_INT}, Required: API ${Build.VERSION_CODES.TIRAMISU}+")
+            Logger.d("Channel-constrained discovery not supported: requires API 33+")
             result.success(false)
             return
         }
 
-        Logger.i("Android version check: PASSED (API ${Build.VERSION.SDK_INT} >= 33)")
-
-        if (!checkInitialization(result)) {
-            Logger.e("Channel-constrained discovery check FAILED: Service not initialized")
-            return
-        }
+        if (!checkInitialization(result)) return
 
         try {
-            Logger.i("Calling wifiManager.isChannelConstrainedDiscoverySupported()...")
             val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
-            
-            if (isSupported) {
-                Logger.i("✓ Channel-constrained discovery: SUPPORTED BY DEVICE")
-                Logger.i("Device hardware supports frequency-based discovery")
-            } else {
-                Logger.w("✗ Channel-constrained discovery: NOT SUPPORTED BY DEVICE")
-                Logger.w("Device hardware does not support frequency-based discovery")
-                Logger.w("Reason: Wi-Fi chipset limitation")
-            }
-            
-            Logger.i("Returning result: $isSupported")
+            Logger.d("Channel-constrained discovery supported: $isSupported")
             result.success(isSupported)
         } catch (e: SecurityException) {
-            Logger.e("Channel-constrained discovery check FAILED: SecurityException")
-            Logger.e("Exception message: ${e.message}")
-            
+            Logger.e("SecurityException checking channel-constrained discovery: ${e.message}")
             if (!permissionsHandler.checkPermissions()) {
-                Logger.e("No permission to check channel-constrained discovery support")
-                Logger.e("Required permissions: ACCESS_FINE_LOCATION, NEARBY_WIFI_DEVICES")
                 permissionsHandler.requestPermissions()
-            } else {
-                Logger.e("Permissions are granted but SecurityException still occurred")
             }
-            
-            Logger.i("Returning result: false (due to SecurityException)")
             result.success(false)
         } catch (e: Exception) {
-            Logger.e("Channel-constrained discovery check FAILED: Unexpected exception")
-            Logger.e("Exception type: ${e.javaClass.simpleName}")
-            Logger.e("Exception message: ${e.message}")
-            Logger.i("Returning result: false (due to exception)")
+            Logger.e("Error checking channel-constrained discovery: ${e.message}")
             result.success(false)
         }
-        
-        Logger.i("================================================================")
     }
 
     /** Stop discovery for peers in Wi-fi Direct scope. */
@@ -562,16 +484,12 @@ class NearbyServiceManager(private var context: Context) {
      * Creates a WiFi Direct group with optional operating frequency.
      * 
      * @param result MethodChannel.Result to send the operation result.
-     * @param frequencyMhz Optional operating frequency in MHz (e.g., 5200 for Channel 40).
-     *                     Requires Android 10+ (API 29+) to set specific frequency.
-     *                     If null or unsupported, system chooses frequency automatically.
+     * @param frequencyMhz Optional operating frequency in MHz (requires API 29+).
      */
     fun createGroup(result: Result, frequencyMhz: Int? = null) {
         if (!checkInitialization(result)) return
         
         val config = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && frequencyMhz != null) {
-            // Android 10+ supports setting operating frequency
-            Logger.i("Creating group on specific frequency: $frequencyMhz MHz (API 29+)")
             try {
                 WifiP2pConfig.Builder()
                     .setNetworkName("DIRECT-mira-${System.currentTimeMillis() % 10000}")
@@ -579,26 +497,19 @@ class NearbyServiceManager(private var context: Context) {
                     .setGroupOperatingFrequency(frequencyMhz)
                     .build()
             } catch (e: IllegalArgumentException) {
-                // Invalid frequency, fall back to default
-                Logger.i("Invalid frequency $frequencyMhz MHz, using default config: ${e.message}")
+                Logger.w("Invalid frequency $frequencyMhz MHz, using default")
                 WifiP2pConfig()
             }
         } else {
-            // Fallback for older Android or when frequency is null
-            if (frequencyMhz != null) {
-                Logger.i("setGroupOperatingFrequency requires API 29+, current: ${Build.VERSION.SDK_INT}")
-            }
-            Logger.i("Creating group with auto frequency selection")
             WifiP2pConfig()
         }
         
         val actionListener = getActionListener(
             result,
-            "Group created ${if (frequencyMhz != null) "on $frequencyMhz MHz" else "with auto frequency"}",
+            "Group created ${if (frequencyMhz != null) "on $frequencyMhz MHz" else ""}",
             "Group creation failed"
         )
         
-        Logger.i("Creating group with config - GroupOwnerIntent: ${config.groupOwnerIntent}, Frequency: ${frequencyMhz ?: "auto"}")
         wifiManager.createGroup(wifiChannel, config, actionListener)
     }
 
@@ -612,35 +523,29 @@ class NearbyServiceManager(private var context: Context) {
     fun connect(result: Result, deviceAddress: String, isGroupOwner: Boolean) {
         if (!checkInitialization(result)) return
 
-        val config = WifiP2pConfig()
         if (receiver.connectedDevice?.deviceAddress == deviceAddress) {
-            Logger.i("Already connected to the device $deviceAddress")
+            Logger.d("Already connected to $deviceAddress")
             result.success(true)
             return
         }
-        val actionListener =
-                getActionListener(
-                        result,
-                        "Connection request sent to device $deviceAddress",
-                        "Connecting to device $deviceAddress failed"
-                )
-        config.deviceAddress = deviceAddress
-        config.wps.setup = WpsInfo.PBC
-        if (isGroupOwner) {
-            config.groupOwnerIntent = 16
-        } else {
-            config.groupOwnerIntent = 0
+
+        val config = WifiP2pConfig().apply {
+            this.deviceAddress = deviceAddress
+            wps.setup = WpsInfo.PBC
+            groupOwnerIntent = if (isGroupOwner) 16 else 0
         }
-        Logger.i(
-                "message: Connecting to device $deviceAddress, isGroupOwner: $isGroupOwner, config: ${config.groupOwnerIntent}"
+
+        val actionListener = getActionListener(
+                result,
+                "Connection request sent to $deviceAddress",
+                "Connection to $deviceAddress failed"
         )
+
         try {
-            wifiChannel.also { wifiChannel: WifiP2pManager.Channel ->
-                wifiManager.connect(wifiChannel, config, actionListener)
-            }
+            wifiManager.connect(wifiChannel, config, actionListener)
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
-                Logger.e("No permission to call 'connect'")
+                Logger.e("No permission to connect")
                 permissionsHandler.requestPermissions()
             }
         }
@@ -648,19 +553,10 @@ class NearbyServiceManager(private var context: Context) {
 
     /** Disconnect from a previous device in Wi-fi Direct scope. */
     fun disconnect(result: Result? = null) {
-        if (!checkInitialization(result)) {
-            Logger.i(
-                    "Not initialized to disconnect ${receiver.connectedDevice?.deviceAddress} and remove group"
-            )
-            return
-        }
+        if (!checkInitialization(result)) return
 
-        val actionListener =
-                getActionListener(result, "Disconnected from last device", "Failed to disconnect")
-
-        Logger.i(
-                "Disconnecting from current device ${receiver.connectedDevice?.deviceAddress} and removing group"
-        )
+        val actionListener = getActionListener(result, "Disconnected", "Failed to disconnect")
+        
         wifiManager.cancelConnect(wifiChannel, null)
         wifiManager.removeGroup(wifiChannel, actionListener)
     }
@@ -778,7 +674,7 @@ class NearbyServiceManager(private var context: Context) {
                 private var discoveryRunnable: Runnable? = null
 
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
-                    Logger.d("Start listening service discovery")
+                    Logger.d("Service discovery stream started")
                     eventSink = sink
 
                     if (!checkInitialization(null, false)) return
@@ -851,7 +747,7 @@ class NearbyServiceManager(private var context: Context) {
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    Logger.d("Stop listening service discovery")
+                    Logger.d("Service discovery stream stopped")
                     eventSink = null
                     discoveryHandler?.removeCallbacks(discoveryRunnable!!)
                     discoveryRunnable = null
@@ -877,13 +773,13 @@ class NearbyServiceManager(private var context: Context) {
 
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     onCancel(null)
-                    Logger.d("Start listening peers")
+                    Logger.d("Peers stream started")
                     eventSink = sink
                     handler.postDelayed(postCallback, 1000)
                 }
 
                 override fun onCancel(p0: Any?) {
-                    Logger.d("Kill last process listening peers")
+                    Logger.d("Peers stream stopped")
                     eventSink = null
                     handler.removeCallbacks(postCallback)
                 }
@@ -909,12 +805,12 @@ class NearbyServiceManager(private var context: Context) {
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     onCancel(null)
                     eventSink = sink
-                    Logger.d("Listen connected device")
+                    Logger.d("Connected device stream started")
                     handler.postDelayed(postCallback, 1000)
                 }
 
                 override fun onCancel(p0: Any?) {
-                    Logger.d("Kill last process connected device")
+                    Logger.d("Connected device stream stopped")
                     eventSink = null
                     handler.removeCallbacks(postCallback)
                 }
