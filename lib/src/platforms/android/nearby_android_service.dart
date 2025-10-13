@@ -75,10 +75,8 @@ class NearbyAndroidService extends NearbyService {
   ///
   @override
   Future<bool> connectById(String deviceId, bool isGroupOwner) {
-    return NearbyServiceAndroidPlatform.instance.connect(
-      deviceId,
-      isGroupOwner,
-    );
+    return NearbyServiceAndroidPlatform.instance
+        .connect(deviceId, isGroupOwner);
   }
 
   ///
@@ -217,11 +215,8 @@ class NearbyAndroidService extends NearbyService {
 
   @override
   Future<dynamic> addLocalService(serviceName, serviceType, txtRecord) {
-    return NearbyServiceAndroidPlatform.instance.addLocalService(
-      serviceName,
-      serviceType,
-      txtRecord,
-    );
+    return NearbyServiceAndroidPlatform.instance
+        .addLocalService(serviceName, serviceType, txtRecord);
   }
 
   @override

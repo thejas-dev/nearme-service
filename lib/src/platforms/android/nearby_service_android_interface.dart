@@ -81,10 +81,7 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   }
 
   Future<dynamic> addLocalService(
-    String serviceName,
-    String serviceType,
-    Map<String, String> txtRecord,
-  ) {
+    String serviceName, String serviceType, Map<String, String> txtRecord) {
     throw UnimplementedError('addLocalService() has not been implemented.');
   }
 

@@ -213,21 +213,17 @@ class NearbyDarwinService extends NearbyService {
         .cast<ReceivedNearbyMessage>()
         .listen(
           eventListener.onData,
-          onDone: () {
-            _communicationChannelState.add(
-              CommunicationChannelState.notConnected,
-            );
-            eventListener.onDone?.call();
-          },
-          onError: (e, s) {
-            Logger.error(e);
-            _communicationChannelState.add(
-              CommunicationChannelState.notConnected,
-            );
-            eventListener.onError?.call(e, s);
-          },
-          cancelOnError: eventListener.cancelOnError,
-        );
+      onDone: () {
+        _communicationChannelState.add(CommunicationChannelState.notConnected);
+        eventListener.onDone?.call();
+      },
+      onError: (e, s) {
+        Logger.error(e);
+        _communicationChannelState.add(CommunicationChannelState.notConnected);
+        eventListener.onError?.call(e, s);
+      },
+      cancelOnError: eventListener.cancelOnError,
+    );
     _resourcesSubscription = NearbyServiceIOSPlatform.instance.resourcesStream
         .map(ResourcesStreamMapper.toFilesPack)
         .where((event) => event != null)
