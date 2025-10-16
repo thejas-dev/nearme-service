@@ -51,7 +51,14 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('connect() has not been implemented.');
   }
 
-  Future<bool> createGroup() {
+  /// Creates a WiFi Direct group with optional operating frequency.
+  ///
+  /// [frequencyMhz] Operating frequency in MHz (e.g., 5200, 5220, 5240).
+  /// Requires Android 10+ (API 29+) to set specific frequency.
+  /// If null or unsupported, system chooses frequency automatically.
+  ///
+  /// Returns true if group creation started successfully, false otherwise.
+  Future<bool> createGroup({int? frequencyMhz}) {
     throw UnimplementedError('createGroup() has not been implemented.');
   }
 
@@ -74,7 +81,7 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   }
 
   Future<dynamic> addLocalService(
-      String serviceName, String serviceType, Map<String, String> txtRecord) {
+    String serviceName, String serviceType, Map<String, String> txtRecord) {
     throw UnimplementedError('addLocalService() has not been implemented.');
   }
 
@@ -84,5 +91,37 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
 
   Future<dynamic> renameDevice(String newName) {
     throw UnimplementedError('renameDevice() has not been implemented.');
+  }
+
+  /// Starts fast peer discovery on a specific frequency channel.
+  /// This is significantly faster than full-band discovery as it only scans one channel.
+  ///
+  /// Requires API level 33+ and channel-constrained discovery support.
+  /// Use [isChannelConstrainedDiscoverySupported] to check support before calling.
+  ///
+  /// Recommended frequencies for 5GHz:
+  /// - 5200 MHz (Channel 40)
+  /// - 5220 MHz (Channel 44)
+  /// - 5240 MHz (Channel 48)
+  ///
+  /// [frequencyMhz] The frequency in MHz to scan (e.g., 5200 for Channel 40).
+  ///
+  /// Returns true if discovery started successfully, false otherwise.
+  Future<bool> discoverPeersOnFrequency(int frequencyMhz) {
+    throw UnimplementedError(
+      'discoverPeersOnFrequency() has not been implemented.',
+    );
+  }
+
+  /// Checks if channel-constrained discovery is supported on this device.
+  /// This feature is required for [discoverPeersOnFrequency] to work.
+  ///
+  /// Requires API level 33+.
+  ///
+  /// Returns true if supported, false otherwise.
+  Future<bool> isChannelConstrainedDiscoverySupported() {
+    throw UnimplementedError(
+      'isChannelConstrainedDiscoverySupported() has not been implemented.',
+    );
   }
 }

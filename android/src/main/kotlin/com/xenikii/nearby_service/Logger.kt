@@ -29,6 +29,12 @@ class Logger {
             }
         }
 
+        fun w(message: String) {
+            if (level.value <= LogLevel.INFO.value) {
+                Log.w(TAG, "\u001B[33m$message\u001B[0m")
+            }
+        }
+
         fun e(message: String) {
             if (level.value <= LogLevel.ERROR.value) {
                 Log.e(TAG, "\u001B[31m$message\u001B[0m")

@@ -230,6 +230,87 @@ class NearbyServiceManager(private var context: Context) {
         }
     }
 
+    /**
+     * Start fast peer discovery on a specific frequency channel.
+     * Requires API level 33+ and channel-constrained discovery support.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * @param frequencyMhz The frequency in MHz to scan (e.g., 5200, 5220, 5240).
+     */
+    fun discoverPeersOnFrequency(result: Result, frequencyMhz: Int) {
+        if (!checkInitialization(result)) return
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Logger.d("Frequency-based discovery requires API 33+, falling back to normal discovery")
+            discover(result)
+            return
+        }
+
+        try {
+            // Check if channel-constrained discovery is supported
+            val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
+            
+            if (!isSupported) {
+                Logger.i("Channel-constrained discovery not supported, falling back to normal discovery")
+                // Fallback to regular discovery
+                discover(result)
+                return
+            }
+
+            wifiManager.discoverPeersOnSpecificFrequency(
+                    wifiChannel,
+                    frequencyMhz,
+                    getActionListener(
+                            result,
+                            "Discovery started on $frequencyMhz MHz",
+                            "Discovery failed on $frequencyMhz MHz"
+                    )
+            )
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission for frequency-based discovery")
+                permissionsHandler.requestPermissions()
+            }
+        } catch (e: UnsupportedOperationException) {
+            Logger.d("Frequency-based discovery not supported, falling back")
+            discover(result)
+        } catch (e: Exception) {
+            Logger.e("Error in frequency-based discovery: ${e.message}")
+            discover(result)
+        }
+    }
+
+    /**
+     * Checks if channel-constrained discovery is supported on this device.
+     * This feature is required for [discoverPeersOnFrequency] to work.
+     *
+     * Requires API level 33+.
+     */
+    fun isChannelConstrainedDiscoverySupported(result: Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Logger.d("Channel-constrained discovery not supported: requires API 33+")
+            result.success(false)
+            return
+        }
+
+        if (!checkInitialization(result)) return
+
+        try {
+            val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
+            Logger.d("Channel-constrained discovery supported: $isSupported")
+            result.success(isSupported)
+        } catch (e: SecurityException) {
+            Logger.e("SecurityException checking channel-constrained discovery: ${e.message}")
+            if (!permissionsHandler.checkPermissions()) {
+                permissionsHandler.requestPermissions()
+            }
+            result.success(false)
+        } catch (e: Exception) {
+            Logger.e("Error checking channel-constrained discovery: ${e.message}")
+            result.success(false)
+        }
+    }
+
     /** Stop discovery for peers in Wi-fi Direct scope. */
     fun stopDiscovery(result: Result) {
         if (!checkInitialization(result)) return
@@ -259,16 +340,36 @@ class NearbyServiceManager(private var context: Context) {
         result.success(info)
     }
 
-    fun createGroup(result: Result) {
+    /**
+     * Creates a WiFi Direct group with optional operating frequency.
+     * 
+     * @param result MethodChannel.Result to send the operation result.
+     * @param frequencyMhz Optional operating frequency in MHz (requires API 29+).
+     */
+    fun createGroup(result: Result, frequencyMhz: Int? = null) {
         if (!checkInitialization(result)) return
-        val config = WifiP2pConfig()
-        val actionListener =
-                getActionListener(
-                        result,
-                        "Group creation request sent",
-                        "Group creation request failed"
-                )
-        Logger.i("Creating group with config: ${config.groupOwnerIntent}")
+        
+        val config = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && frequencyMhz != null) {
+            try {
+                WifiP2pConfig.Builder()
+                    .setNetworkName("DIRECT-mira-${System.currentTimeMillis() % 10000}")
+                    .setPassphrase("mira1234")
+                    .setGroupOperatingFrequency(frequencyMhz)
+                    .build()
+            } catch (e: IllegalArgumentException) {
+                Logger.w("Invalid frequency $frequencyMhz MHz, using default")
+                WifiP2pConfig()
+            }
+        } else {
+            WifiP2pConfig()
+        }
+        
+        val actionListener = getActionListener(
+            result,
+            "Group created ${if (frequencyMhz != null) "on $frequencyMhz MHz" else ""}",
+            "Group creation failed"
+        )
+        
         wifiManager.createGroup(wifiChannel, config, actionListener)
     }
 
@@ -282,28 +383,24 @@ class NearbyServiceManager(private var context: Context) {
     fun connect(result: Result, deviceAddress: String, isGroupOwner: Boolean) {
         if (!checkInitialization(result)) return
 
-        val config = WifiP2pConfig()
         if (receiver.connectedDevice?.deviceAddress == deviceAddress) {
             Logger.i("Already connected to the device $deviceAddress")
             result.success(true)
             return
         }
-        val actionListener =
-                getActionListener(
-                        result,
-                        "Connection request sent to device $deviceAddress",
-                        "Connecting to device $deviceAddress failed"
-                )
-        config.deviceAddress = deviceAddress
-        config.wps.setup = WpsInfo.PBC
-        if (isGroupOwner) {
-            config.groupOwnerIntent = 16
-        } else {
-            config.groupOwnerIntent = 0
+
+        val config = WifiP2pConfig().apply {
+            this.deviceAddress = deviceAddress
+            wps.setup = WpsInfo.PBC
+            groupOwnerIntent = if (isGroupOwner) 16 else 0
         }
-        Logger.i(
-                "message: Connecting to device $deviceAddress, isGroupOwner: $isGroupOwner, config: ${config.groupOwnerIntent}"
+
+        val actionListener = getActionListener(
+                result,
+                "Connection request sent to $deviceAddress",
+                "Connection to $deviceAddress failed"
         )
+
         try {
             wifiChannel.also { wifiChannel: WifiP2pManager.Channel ->
                 wifiManager.connect(wifiChannel, config, actionListener)
@@ -318,19 +415,10 @@ class NearbyServiceManager(private var context: Context) {
 
     /** Disconnect from a previous device in Wi-fi Direct scope. */
     fun disconnect(result: Result? = null) {
-        if (!checkInitialization(result)) {
-            Logger.i(
-                    "Not initialized to disconnect ${receiver.connectedDevice?.deviceAddress} and remove group"
-            )
-            return
-        }
+        if (!checkInitialization(result)) return
 
-        val actionListener =
-                getActionListener(result, "Disconnected from last device", "Failed to disconnect")
-
-        Logger.i(
-                "Disconnecting from current device ${receiver.connectedDevice?.deviceAddress} and removing group"
-        )
+        val actionListener = getActionListener(result, "Disconnected", "Failed to disconnect")
+        
         wifiManager.cancelConnect(wifiChannel, null)
         wifiManager.removeGroup(wifiChannel, actionListener)
     }

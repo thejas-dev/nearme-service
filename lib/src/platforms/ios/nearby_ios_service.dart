@@ -18,8 +18,8 @@ class NearbyDarwinService extends NearbyService {
 
   final _communicationChannelState =
       NearbyServiceListenable<CommunicationChannelState>(
-    initialValue: CommunicationChannelState.notConnected,
-  );
+        initialValue: CommunicationChannelState.notConnected,
+      );
 
   StreamSubscription? _messagesSubscription;
   StreamSubscription? _resourcesSubscription;
@@ -212,7 +212,7 @@ class NearbyDarwinService extends NearbyService {
         .where((event) => event?.sender.id == data.connectedDeviceId)
         .cast<ReceivedNearbyMessage>()
         .listen(
-      eventListener.onData,
+          eventListener.onData,
       onDone: () {
         _communicationChannelState.add(CommunicationChannelState.notConnected);
         eventListener.onDone?.call();
@@ -229,15 +229,17 @@ class NearbyDarwinService extends NearbyService {
         .where((event) => event != null)
         .cast<ReceivedNearbyFilesPack>()
         .listen(
-      (e) => filesListener?.onData.call(e),
-      onDone: filesListener?.onDone,
-      onError: (e, s) {
-        Logger.error(e);
-        _communicationChannelState.add(CommunicationChannelState.notConnected);
-        filesListener?.onError?.call(e, s);
-      },
-      cancelOnError: filesListener?.cancelOnError,
-    );
+          (e) => filesListener?.onData.call(e),
+          onDone: filesListener?.onDone,
+          onError: (e, s) {
+            Logger.error(e);
+            _communicationChannelState.add(
+              CommunicationChannelState.notConnected,
+            );
+            filesListener?.onError?.call(e, s);
+          },
+          cancelOnError: filesListener?.cancelOnError,
+        );
     if (_messagesSubscription != null) {
       Logger.info('Messages subscription was created successfully');
       eventListener.onCreated?.call();
@@ -333,7 +335,9 @@ class NearbyDarwinService extends NearbyService {
   }
 
   @override
-  Future<bool> createGroup() {
+  Future<bool> createGroup({int? frequencyMhz}) {
+    // iOS doesn't support frequency-specific group creation
+    // frequencyMhz parameter is ignored
     throw false;
   }
 

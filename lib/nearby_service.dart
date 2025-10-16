@@ -335,12 +335,12 @@ abstract class NearbyService {
 
   Future<NearbyConnectionAndroidInfo?> getWifiInformation();
 
-  Future<bool> createGroup();
+  Future<bool> createGroup({int? frequencyMhz});
 
   Future<bool> removeGroup();
 
   Future<dynamic> addLocalService(
-      String serviceName, String serviceType, Map<String, String> txtRecord);
+    String serviceName, String serviceType, Map<String, String> txtRecord);
 
   Future<dynamic> removeLocalServices();
 
