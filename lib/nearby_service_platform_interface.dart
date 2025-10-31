@@ -66,6 +66,12 @@ abstract class NearbyServicePlatform extends PlatformInterface {
     );
   }
 
+  Stream<Map<String, dynamic>> getPopupNotificationStream() {
+    throw UnimplementedError(
+      'getPopupNotificationStream() has not been implemented.',
+    );
+  }
+
   @Deprecated(
     'This method will be removed. Method disconnect is platform-specific and you should use NearbyServiceIOSPlatform.disconnectById or NearbyServiceAndroidPlatform.disconnectById instead.',
   )

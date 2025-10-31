@@ -18,6 +18,7 @@ const val PEERS_CHANNEL_NAME = "nearby_service_peers"
 const val P2P_SERVICE_CHANNEL_NAME = "p2p_nearby_service"
 const val CONNECTED_DEVICE_CHANNEL_NAME = "nearby_service_connected_device"
 const val CONNECTION_INFO_CHANNEL_NAME = "nearby_service_connection_info"
+const val POPUP_NOTIFICATION_CHANNEL_NAME = "nearby_service_popup_notification"
 
 /** Plugin for creating connections in the Wi-fi Direct scope. */
 class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -28,10 +29,10 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var p2pServiceChannel: EventChannel
     private lateinit var connectedDeviceChannel: EventChannel
     private lateinit var connectionInfoChannel: EventChannel
+    private lateinit var popupNotificationChannel: EventChannel
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onMethodCall(call: MethodCall, result: Result) {
-        print("Came here 123")
         var groupOwner = call.argument("isGroupOwner") ?: false
         Logger.i("Is Group Owner: ${groupOwner} call method: ${call.method}")
         when (call.method) {
@@ -215,12 +216,16 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
         connectionInfoChannel = EventChannel(binaryMessenger, CONNECTION_INFO_CHANNEL_NAME)
         connectionInfoChannel.setStreamHandler(manager.connectionInfoHandler)
+
+        popupNotificationChannel = EventChannel(binaryMessenger, POPUP_NOTIFICATION_CHANNEL_NAME)
+        popupNotificationChannel.setStreamHandler(manager.popupNotificationHandler)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         peersChannel.setStreamHandler(null)
         connectedDeviceChannel.setStreamHandler(null)
+        popupNotificationChannel.setStreamHandler(null)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

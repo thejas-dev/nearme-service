@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:nearby_service/nearby_service.dart';
@@ -13,6 +11,15 @@ class MethodChannelNearbyService extends NearbyServicePlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('nearby_service');
+
+  MethodChannelNearbyService() {
+    methodChannel.setMethodCallHandler(_handleMethodCall);
+  }
+
+  Future<void> _handleMethodCall(MethodCall call) async {
+    Logger.info("Method call from native: ${call.method} ${call.arguments}");
+    // Handle any incoming method calls from the native side if needed.
+  }
 
   @override
   Future<String?> getPlatformVersion() async {
@@ -87,6 +94,23 @@ class MethodChannelNearbyService extends NearbyServicePlatform {
     return connectedDeviceChannel.receiveBroadcastStream(deviceId).map((e) {
       final updatedResult = ResultHandler.instance.handle(e);
       return NearbyDeviceMapper.instance.mapToDevice(updatedResult);
+    });
+  }
+
+  @override
+  Stream<Map<String, dynamic>> getPopupNotificationStream() {
+    const popupNotificationChannel = EventChannel(
+      "nearby_service_popup_notification",
+    );
+    return popupNotificationChannel.receiveBroadcastStream().map((e) {
+      final updatedResult = ResultHandler.instance.handle(e);
+      Logger.info(
+          "PopupNotificationStream: $updatedResult ${updatedResult.runtimeType}");
+      if (updatedResult is Map) {
+        return Map<String, dynamic>.from(updatedResult);
+      } else {
+        return <String, dynamic>{};
+      }
     });
   }
 }

@@ -166,6 +166,22 @@ abstract class NearbyService {
   }
 
   ///
+  /// Returns a stream of popup notifications from the Android Wi-Fi P2P system.
+  ///
+  /// This stream emits events when system dialogs (like connection dialogs) are shown.
+  /// Each event contains:
+  /// - `type`: The type of popup (e.g., "connection_dialog")
+  /// - `message`: A descriptive message about the popup
+  /// - `timestamp`: When the popup was detected
+  /// - `connectionState`: The current connection state
+  ///
+  /// **Note: This is only available on Android platforms.**
+  ///
+  Stream<Map<String, dynamic>> getPopupNotificationStream() {
+    return NearbyServicePlatform.instance.getPopupNotificationStream();
+  }
+
+  ///
   /// Returns the  constantly updating [NearbyDevice] you are currently connected to.
   /// If it returns null, then there is no connection at the moment.
   ///
@@ -340,7 +356,7 @@ abstract class NearbyService {
   Future<bool> removeGroup();
 
   Future<dynamic> addLocalService(
-    String serviceName, String serviceType, Map<String, String> txtRecord);
+      String serviceName, String serviceType, Map<String, String> txtRecord);
 
   Future<dynamic> removeLocalServices();
 

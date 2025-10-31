@@ -231,8 +231,8 @@ class NearbyServiceManager(private var context: Context) {
     }
 
     /**
-     * Start fast peer discovery on a specific frequency channel.
-     * Requires API level 33+ and channel-constrained discovery support.
+     * Start fast peer discovery on a specific frequency channel. Requires API level 33+ and
+     * channel-constrained discovery support.
      *
      * @param result MethodChannel.Result to send the operation result.
      * @param frequencyMhz The frequency in MHz to scan (e.g., 5200, 5220, 5240).
@@ -249,9 +249,11 @@ class NearbyServiceManager(private var context: Context) {
         try {
             // Check if channel-constrained discovery is supported
             val isSupported = wifiManager.isChannelConstrainedDiscoverySupported()
-            
+
             if (!isSupported) {
-                Logger.i("Channel-constrained discovery not supported, falling back to normal discovery")
+                Logger.i(
+                        "Channel-constrained discovery not supported, falling back to normal discovery"
+                )
                 // Fallback to regular discovery
                 discover(result)
                 return
@@ -281,8 +283,8 @@ class NearbyServiceManager(private var context: Context) {
     }
 
     /**
-     * Checks if channel-constrained discovery is supported on this device.
-     * This feature is required for [discoverPeersOnFrequency] to work.
+     * Checks if channel-constrained discovery is supported on this device. This feature is required
+     * for [discoverPeersOnFrequency] to work.
      *
      * Requires API level 33+.
      */
@@ -342,34 +344,36 @@ class NearbyServiceManager(private var context: Context) {
 
     /**
      * Creates a WiFi Direct group with optional operating frequency.
-     * 
+     *
      * @param result MethodChannel.Result to send the operation result.
      * @param frequencyMhz Optional operating frequency in MHz (requires API 29+).
      */
     fun createGroup(result: Result, frequencyMhz: Int? = null) {
         if (!checkInitialization(result)) return
-        
-        val config = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && frequencyMhz != null) {
-            try {
-                WifiP2pConfig.Builder()
-                    .setNetworkName("DIRECT-mira-${System.currentTimeMillis() % 10000}")
-                    .setPassphrase("mira1234")
-                    .setGroupOperatingFrequency(frequencyMhz)
-                    .build()
-            } catch (e: IllegalArgumentException) {
-                Logger.w("Invalid frequency $frequencyMhz MHz, using default")
-                WifiP2pConfig()
-            }
-        } else {
-            WifiP2pConfig()
-        }
-        
-        val actionListener = getActionListener(
-            result,
-            "Group created ${if (frequencyMhz != null) "on $frequencyMhz MHz" else ""}",
-            "Group creation failed"
-        )
-        
+
+        val config =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && frequencyMhz != null) {
+                    try {
+                        WifiP2pConfig.Builder()
+                                .setNetworkName("DIRECT-mira-${System.currentTimeMillis() % 10000}")
+                                .setPassphrase("mira1234")
+                                .setGroupOperatingFrequency(frequencyMhz)
+                                .build()
+                    } catch (e: IllegalArgumentException) {
+                        Logger.w("Invalid frequency $frequencyMhz MHz, using default")
+                        WifiP2pConfig()
+                    }
+                } else {
+                    WifiP2pConfig()
+                }
+
+        val actionListener =
+                getActionListener(
+                        result,
+                        "Group created ${if (frequencyMhz != null) "on $frequencyMhz MHz" else ""}",
+                        "Group creation failed"
+                )
+
         wifiManager.createGroup(wifiChannel, config, actionListener)
     }
 
@@ -389,17 +393,19 @@ class NearbyServiceManager(private var context: Context) {
             return
         }
 
-        val config = WifiP2pConfig().apply {
-            this.deviceAddress = deviceAddress
-            wps.setup = WpsInfo.PBC
-            groupOwnerIntent = if (isGroupOwner) 16 else 0
-        }
+        val config =
+                WifiP2pConfig().apply {
+                    this.deviceAddress = deviceAddress
+                    wps.setup = WpsInfo.PBC
+                    groupOwnerIntent = if (isGroupOwner) 15 else 0
+                }
 
-        val actionListener = getActionListener(
-                result,
-                "Connection request sent to $deviceAddress",
-                "Connection to $deviceAddress failed"
-        )
+        val actionListener =
+                getActionListener(
+                        result,
+                        "Connection request sent to $deviceAddress",
+                        "Connection to $deviceAddress failed"
+                )
 
         try {
             wifiChannel.also { wifiChannel: WifiP2pManager.Channel ->
@@ -418,7 +424,7 @@ class NearbyServiceManager(private var context: Context) {
         if (!checkInitialization(result)) return
 
         val actionListener = getActionListener(result, "Disconnected", "Failed to disconnect")
-        
+
         wifiManager.cancelConnect(wifiChannel, null)
         wifiManager.removeGroup(wifiChannel, actionListener)
     }
@@ -705,6 +711,23 @@ class NearbyServiceManager(private var context: Context) {
                     Logger.d("Kill last process connection info")
                     eventSink = null
                     handler.removeCallbacks(postCallback)
+                }
+            }
+
+    var popupNotificationHandler =
+            object : EventChannel.StreamHandler {
+                private var eventSink: EventChannel.EventSink? = null
+
+                override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
+                    Logger.d("Start listening popup notifications")
+                    eventSink = sink
+                    receiver.setPopupNotificationSink(eventSink)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    Logger.d("Stop listening popup notifications")
+                    eventSink = null
+                    receiver.setPopupNotificationSink(null)
                 }
             }
 }

@@ -174,6 +174,10 @@ class NearbyAndroidService extends NearbyService {
     return NearbyServiceAndroidPlatform.instance.getConnectionInfoStream();
   }
 
+  Stream<String> getConnectionState() {
+    return NearbyServiceAndroidPlatform.instance.getConnectionState();
+  }
+
   @override
   Stream<CommunicationChannelState> getCommunicationChannelStateStream() {
     return _socketService.state.broadcastStream;

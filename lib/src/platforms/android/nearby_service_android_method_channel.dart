@@ -123,7 +123,6 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
 
   @override
   Future renameDevice(String newName) {
-    // TODO: implement renameDevice
     final result = methodChannel.invokeMethod("renameDevice");
     return ResultHandler.instance.handle<dynamic>(result) ?? false;
   }

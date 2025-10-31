@@ -70,6 +70,7 @@ class _AppBodyState extends State<AppBody> {
   /// List of discovered devices
   List<NearbyDevice> _peers = [];
   StreamSubscription? _peersSubscription;
+  StreamSubscription? _popupNotificationSubscription;
   CommunicationChannelState _communicationChannelState =
       CommunicationChannelState.notConnected;
 
@@ -88,6 +89,7 @@ class _AppBodyState extends State<AppBody> {
   @override
   void dispose() {
     _peersSubscription?.cancel();
+    _popupNotificationSubscription?.cancel();
     _connectionCheckTimer?.cancel();
     super.dispose();
   }
@@ -162,6 +164,14 @@ class _AppBodyState extends State<AppBody> {
 
   Future<void> _initialize() async {
     await _nearbyService.initialize();
+
+    // Listen for popup notifications (Android only)
+    if (Platform.isAndroid) {
+      _popupNotificationSubscription =
+          _nearbyService.getPopupNotificationStream().listen((notification) {
+        _handlePopupNotification(notification);
+      });
+    }
   }
 
   Future<void> _startProcess() async {
@@ -353,5 +363,25 @@ class _AppBodyState extends State<AppBody> {
         receiver: _connectedDevice!.info,
       ),
     );
+  }
+
+  void _handlePopupNotification(Map<String, dynamic> notification) {
+    // Handle popup notifications from Android Wi-Fi P2P system
+    final type = notification['type'] as String?;
+    final message = notification['message'] as String?;
+    final connectionState = notification['connectionState'] as String?;
+
+    if (type == 'connection_dialog' && message != null) {
+      // Show a snackbar or handle the popup notification as needed
+      AppSnackBar.show(
+        context,
+        title: 'System Dialog Detected',
+        subtitle: 'Connection dialog is showing (State: $connectionState)',
+      );
+
+      // You can add custom logic here based on your app's needs
+      // For example: show a custom overlay, update UI state, etc.
+      print('Popup notification received: $notification');
+    }
   }
 }
