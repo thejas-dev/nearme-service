@@ -80,6 +80,16 @@ class NearbyAndroidService extends NearbyService {
   }
 
   ///
+  /// Connects to a device using SSID and passphrase.
+  ///
+  /// [ssid] Network name (SSID) to connect to.
+  /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+  ///
+  Future<bool> connectWithSSID(String ssid, {String passphrase = "KhJ10287SbGa"}) {
+    return NearbyServiceAndroidPlatform.instance.connectWithSSID(ssid, passphrase: passphrase);
+  }
+
+  ///
   /// Disconnects from the [device] on the Wifi Direct network.
   ///
   /// [device] is not required for Android.
@@ -194,6 +204,21 @@ class NearbyAndroidService extends NearbyService {
   Future<bool> createGroup({int? frequencyMhz}) {
     return NearbyServiceAndroidPlatform.instance.createGroup(
       frequencyMhz: frequencyMhz,
+    );
+  }
+
+  ///
+  /// Creates a WiFi Direct group from device ID with specified passphrase.
+  ///
+  /// [deviceId] Device ID to include in the network name.
+  /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+  ///
+  /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
+  ///
+  Future<bool> createGroupFromDeviceId(String deviceId, {String passphrase = "KhJ10287SbGa"}) {
+    return NearbyServiceAndroidPlatform.instance.createGroupFromDeviceId(
+      deviceId,
+      passphrase: passphrase,
     );
   }
 

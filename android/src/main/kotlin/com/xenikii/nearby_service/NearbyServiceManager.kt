@@ -377,10 +377,63 @@ class NearbyServiceManager(private var context: Context) {
         wifiManager.createGroup(wifiChannel, config, actionListener)
     }
 
+    /**
+     * Creates a WiFi Direct group from device ID with specified passphrase.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * @param deviceId Device ID to include in the network name.
+     * @param passphrase Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+     */
+    fun createGroupFromDeviceId(
+            result: Result,
+            deviceId: String,
+            passphrase: String = "KhJ10287SbGa"
+    ) {
+        if (!checkInitialization(result)) return
+
+        try {
+            // Generate 6 random alphanumeric characters
+            val randomChars =
+                    (1..6)
+                            .map { kotlin.random.Random.nextInt(0, 36) }
+                            .map { if (it < 10) '0' + it else 'A' + (it - 10) }
+                            .joinToString("")
+
+            val networkName = "Direct-mira-$deviceId" + "DDD" + randomChars
+
+            val config =
+                    WifiP2pConfig.Builder()
+                            .setNetworkName(networkName)
+                            .setPassphrase(passphrase)
+                            .enablePersistentMode(false)
+                            .build()
+
+            val actionListener =
+                    getActionListener(
+                            result,
+                            "Group created from device ID: $deviceId",
+                            "Group creation from device ID failed"
+                    )
+
+            wifiManager.createGroup(wifiChannel, config, actionListener)
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'createGroupFromDeviceId'")
+                permissionsHandler.requestPermissions()
+            }
+        } catch (e: Exception) {
+            Logger.e("Error in createGroupFromDeviceId: ${e.message}")
+            result.error("ERROR", "Failed to create group from device ID: ${e.message}", null)
+        }
+    }
+
     fun removeGroup(result: Result) {
         if (!checkInitialization(result)) return
 
-        wifiManager.removeGroup(wifiChannel, null)
+        val actionListener =
+                getActionListener(result, "Group removed successfully", "Failed to remove group")
+
+        wifiManager.removeGroup(wifiChannel, actionListener)
     }
 
     /** Connects to provided [deviceAddress] in Wi-fi Direct scope. */
@@ -416,6 +469,43 @@ class NearbyServiceManager(private var context: Context) {
                 Logger.e("No permission to call 'connect'")
                 permissionsHandler.requestPermissions()
             }
+        }
+    }
+
+    /**
+     * Connects to a device using SSID and passphrase.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * @param ssid Network name (SSID) to connect to.
+     * @param passphrase Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+     */
+    fun connectWithSSID(result: Result, ssid: String, passphrase: String = "KhJ10287SbGa") {
+        if (!checkInitialization(result)) return
+
+        try {
+            val config =
+                    WifiP2pConfig.Builder()
+                            .setNetworkName(ssid)
+                            .setPassphrase(passphrase)
+                            .enablePersistentMode(false)
+                            .build()
+
+            val actionListener =
+                    getActionListener(
+                            result,
+                            "Connection request sent to SSID: $ssid",
+                            "Connection to SSID: $ssid failed"
+                    )
+
+            wifiManager.connect(wifiChannel, config, actionListener)
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'connectWithSSID'")
+                permissionsHandler.requestPermissions()
+            }
+        } catch (e: Exception) {
+            Logger.e("Error in connectWithSSID: ${e.message}")
+            result.error("ERROR", "Failed to connect with SSID: ${e.message}", null)
         }
     }
 

@@ -51,6 +51,16 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('connect() has not been implemented.');
   }
 
+  /// Connects to a device using SSID and passphrase.
+  ///
+  /// [ssid] Network name (SSID) to connect to.
+  /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+  ///
+  /// Returns true if connection request was sent successfully, false otherwise.
+  Future<bool> connectWithSSID(String ssid, {String passphrase = "KhJ10287SbGa"}) {
+    throw UnimplementedError('connectWithSSID() has not been implemented.');
+  }
+
   /// Creates a WiFi Direct group with optional operating frequency.
   ///
   /// [frequencyMhz] Operating frequency in MHz (e.g., 5200, 5220, 5240).
@@ -60,6 +70,18 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   /// Returns true if group creation started successfully, false otherwise.
   Future<bool> createGroup({int? frequencyMhz}) {
     throw UnimplementedError('createGroup() has not been implemented.');
+  }
+
+  /// Creates a WiFi Direct group from device ID with specified passphrase.
+  ///
+  /// [deviceId] Device ID to include in the network name.
+  /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+  ///
+  /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
+  ///
+  /// Returns true if group creation started successfully, false otherwise.
+  Future<bool> createGroupFromDeviceId(String deviceId, {String passphrase = "KhJ10287SbGa"}) {
+    throw UnimplementedError('createGroupFromDeviceId() has not been implemented.');
   }
 
   Future<bool> removeGroup() {

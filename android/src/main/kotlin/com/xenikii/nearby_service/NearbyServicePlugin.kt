@@ -158,6 +158,17 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
+            "connectWithSSID" -> {
+                try {
+                    manager.connectWithSSID(
+                            result,
+                            call.argument("ssid") ?: "",
+                            call.argument("passphrase") ?: "KhJ10287SbGa"
+                    )
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             "disconnect" -> {
                 try {
                     manager.disconnect(result)
@@ -176,6 +187,17 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 try {
                     val frequencyMhz = call.argument<Int>("frequencyMhz")
                     manager.createGroup(result, frequencyMhz)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
+            "createGroupFromDeviceId" -> {
+                try {
+                    manager.createGroupFromDeviceId(
+                            result,
+                            call.argument("deviceId") ?: "",
+                            call.argument("passphrase") ?: "KhJ10287SbGa"
+                    )
                 } catch (e: Exception) {
                     onError(result, e)
                 }
