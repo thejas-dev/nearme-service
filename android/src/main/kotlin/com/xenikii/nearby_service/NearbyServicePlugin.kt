@@ -202,6 +202,15 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
+            "buildSSIDFromDeviceId" -> {
+                try {
+                    val deviceId = call.argument<String>("deviceId") ?: ""
+                    val ssid = manager.buildSSIDFromDeviceId(deviceId)
+                    result.success(ssid)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             "removeGroup" -> {
                 try {
                     manager.removeGroup(result)

@@ -378,6 +378,16 @@ class NearbyServiceManager(private var context: Context) {
     }
 
     /**
+     * Builds and returns the SSID (network name) from device ID.
+     *
+     * @param deviceId Device ID to include in the network name.
+     * @return SSID string in the format: "Direct-mira-<deviceId>DdDxaK21BA"
+     */
+    fun buildSSIDFromDeviceId(deviceId: String): String {
+        return "Direct-mira-$deviceId" + "DdDxaK21BA"
+    }
+
+    /**
      * Creates a WiFi Direct group from device ID with specified passphrase.
      *
      * @param result MethodChannel.Result to send the operation result.
@@ -392,14 +402,7 @@ class NearbyServiceManager(private var context: Context) {
         if (!checkInitialization(result)) return
 
         try {
-            // Generate 6 random alphanumeric characters
-            val randomChars =
-                    (1..6)
-                            .map { kotlin.random.Random.nextInt(0, 36) }
-                            .map { if (it < 10) '0' + it else 'A' + (it - 10) }
-                            .joinToString("")
-
-            val networkName = "Direct-mira-$deviceId" + "DDD" + randomChars
+            val networkName = buildSSIDFromDeviceId(deviceId)
 
             val config =
                     WifiP2pConfig.Builder()

@@ -85,8 +85,10 @@ class NearbyAndroidService extends NearbyService {
   /// [ssid] Network name (SSID) to connect to.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
   ///
-  Future<bool> connectWithSSID(String ssid, {String passphrase = "KhJ10287SbGa"}) {
-    return NearbyServiceAndroidPlatform.instance.connectWithSSID(ssid, passphrase: passphrase);
+  Future<bool> connectWithSSID(String ssid,
+      {String passphrase = "KhJ10287SbGa"}) {
+    return NearbyServiceAndroidPlatform.instance
+        .connectWithSSID(ssid, passphrase: passphrase);
   }
 
   ///
@@ -215,11 +217,24 @@ class NearbyAndroidService extends NearbyService {
   ///
   /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
   ///
-  Future<bool> createGroupFromDeviceId(String deviceId, {String passphrase = "KhJ10287SbGa"}) {
+  Future<bool> createGroupFromDeviceId(String deviceId,
+      {String passphrase = "KhJ10287SbGa"}) {
     return NearbyServiceAndroidPlatform.instance.createGroupFromDeviceId(
       deviceId,
       passphrase: passphrase,
     );
+  }
+
+  ///
+  /// Builds and returns the SSID (network name) from device ID.
+  ///
+  /// [deviceId] Device ID to include in the network name.
+  ///
+  /// Returns the SSID string in the format: "Direct-mira-<deviceId>DdDxaK21BA"
+  ///
+  Future<String> buildSSIDFromDeviceId(String deviceId) {
+    return NearbyServiceAndroidPlatform.instance
+        .buildSSIDFromDeviceId(deviceId);
   }
 
   @override

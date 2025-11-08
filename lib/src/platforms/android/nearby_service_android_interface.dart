@@ -57,7 +57,8 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
   ///
   /// Returns true if connection request was sent successfully, false otherwise.
-  Future<bool> connectWithSSID(String ssid, {String passphrase = "KhJ10287SbGa"}) {
+  Future<bool> connectWithSSID(String ssid,
+      {String passphrase = "KhJ10287SbGa"}) {
     throw UnimplementedError('connectWithSSID() has not been implemented.');
   }
 
@@ -80,8 +81,20 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
   ///
   /// Returns true if group creation started successfully, false otherwise.
-  Future<bool> createGroupFromDeviceId(String deviceId, {String passphrase = "KhJ10287SbGa"}) {
-    throw UnimplementedError('createGroupFromDeviceId() has not been implemented.');
+  Future<bool> createGroupFromDeviceId(String deviceId,
+      {String passphrase = "KhJ10287SbGa"}) {
+    throw UnimplementedError(
+        'createGroupFromDeviceId() has not been implemented.');
+  }
+
+  /// Builds and returns the SSID (network name) from device ID.
+  ///
+  /// [deviceId] Device ID to include in the network name.
+  ///
+  /// Returns the SSID string in the format: "Direct-mira-<deviceId>DdDxaK21BA"
+  Future<String> buildSSIDFromDeviceId(String deviceId) {
+    throw UnimplementedError(
+        'buildSSIDFromDeviceId() has not been implemented.');
   }
 
   Future<bool> removeGroup() {

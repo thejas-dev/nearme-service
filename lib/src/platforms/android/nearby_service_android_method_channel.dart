@@ -79,7 +79,8 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   }
 
   @override
-  Future<bool> connectWithSSID(String ssid, {String passphrase = "KhJ10287SbGa"}) async {
+  Future<bool> connectWithSSID(String ssid,
+      {String passphrase = "KhJ10287SbGa"}) async {
     final result = await methodChannel.invokeMethod(
       "connectWithSSID",
       {"ssid": ssid, "passphrase": passphrase},
@@ -109,12 +110,22 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   }
 
   @override
-  Future<bool> createGroupFromDeviceId(String deviceId, {String passphrase = "KhJ10287SbGa"}) async {
+  Future<bool> createGroupFromDeviceId(String deviceId,
+      {String passphrase = "KhJ10287SbGa"}) async {
     final result = await methodChannel.invokeMethod(
       "createGroupFromDeviceId",
       {"deviceId": deviceId, "passphrase": passphrase},
     );
     return ResultHandler.instance.handle<bool?>(result) ?? false;
+  }
+
+  @override
+  Future<String> buildSSIDFromDeviceId(String deviceId) async {
+    final result = await methodChannel.invokeMethod(
+      "buildSSIDFromDeviceId",
+      {"deviceId": deviceId},
+    );
+    return ResultHandler.instance.handle<String?>(result) ?? "";
   }
 
   @override
