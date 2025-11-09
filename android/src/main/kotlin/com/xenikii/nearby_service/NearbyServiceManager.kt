@@ -381,10 +381,10 @@ class NearbyServiceManager(private var context: Context) {
      * Builds and returns the SSID (network name) from device ID.
      *
      * @param deviceId Device ID to include in the network name.
-     * @return SSID string in the format: "Direct-mira-<deviceId>DdDxaK21BA"
+     * @return SSID string in the format: "DIRECT-mira-<deviceId>DdDxaK21BA"
      */
     fun buildSSIDFromDeviceId(deviceId: String): String {
-        return "Direct-mira-$deviceId" + "DdDxaK21BA"
+        return "DIRECT-mira-$deviceId" + "DdDxaK21BA"
     }
 
     /**

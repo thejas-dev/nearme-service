@@ -230,7 +230,7 @@ class NearbyAndroidService extends NearbyService {
   ///
   /// [deviceId] Device ID to include in the network name.
   ///
-  /// Returns the SSID string in the format: "Direct-mira-<deviceId>DdDxaK21BA"
+  /// Returns the SSID string in the format: "DIRECT-mira-<deviceId>DdDxaK21BA"
   ///
   Future<String> buildSSIDFromDeviceId(String deviceId) {
     return NearbyServiceAndroidPlatform.instance
