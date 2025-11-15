@@ -79,11 +79,11 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   }
 
   @override
-  Future<bool> connectWithSSID(String ssid,
+  Future<bool> connectWithDeviceId(String deviceId,
       {String passphrase = "KhJ10287SbGa"}) async {
     final result = await methodChannel.invokeMethod(
-      "connectWithSSID",
-      {"ssid": ssid, "passphrase": passphrase},
+      "connectWithDeviceId",
+      {"deviceId": deviceId, "passphrase": passphrase},
     );
     return ResultHandler.instance.handle<bool?>(result) ?? false;
   }

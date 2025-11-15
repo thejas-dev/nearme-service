@@ -477,16 +477,17 @@ class NearbyServiceManager(private var context: Context) {
     }
 
     /**
-     * Connects to a device using SSID and passphrase.
+     * Connects to a device using device ID and passphrase.
      *
      * @param result MethodChannel.Result to send the operation result.
-     * @param ssid Network name (SSID) to connect to.
+     * @param deviceId Device ID to build SSID from.
      * @param passphrase Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
      */
-    fun connectWithSSID(result: Result, ssid: String, passphrase: String = "KhJ10287SbGa") {
+    fun connectWithDeviceId(result: Result, deviceId: String, passphrase: String = "KhJ10287SbGa") {
         if (!checkInitialization(result)) return
 
         try {
+            val ssid = buildSSIDFromDeviceId(deviceId)
             val config =
                     WifiP2pConfig.Builder()
                             .setNetworkName(ssid)
@@ -496,21 +497,17 @@ class NearbyServiceManager(private var context: Context) {
                             .build()
 
             val actionListener =
-                    getActionListener(
-                            result,
-                            "Connection request sent to SSID: $ssid",
-                            "Connection to SSID: $ssid failed"
-                    )
+                    getActionListener(result, null, "Connection to device ID: $deviceId failed")
 
             wifiManager.connect(wifiChannel, config, actionListener)
         } catch (e: SecurityException) {
             if (!permissionsHandler.checkPermissions()) {
-                Logger.e("No permission to call 'connectWithSSID'")
+                Logger.e("No permission to call 'connectWithDeviceId'")
                 permissionsHandler.requestPermissions()
             }
         } catch (e: Exception) {
-            Logger.e("Error in connectWithSSID: ${e.message}")
-            result.error("ERROR", "Failed to connect with SSID: ${e.message}", null)
+            Logger.e("Error in connectWithDeviceId: ${e.message}")
+            result.error("ERROR", "Failed to connect with device ID: ${e.message}", null)
         }
     }
 

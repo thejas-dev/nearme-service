@@ -158,11 +158,11 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
-            "connectWithSSID" -> {
+            "connectWithDeviceId" -> {
                 try {
-                    manager.connectWithSSID(
+                    manager.connectWithDeviceId(
                             result,
-                            call.argument("ssid") ?: "",
+                            call.argument("deviceId") ?: "",
                             call.argument("passphrase") ?: "KhJ10287SbGa"
                     )
                 } catch (e: Exception) {

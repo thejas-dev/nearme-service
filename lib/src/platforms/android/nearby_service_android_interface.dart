@@ -51,15 +51,15 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('connect() has not been implemented.');
   }
 
-  /// Connects to a device using SSID and passphrase.
+  /// Connects to a device using device ID and passphrase.
   ///
-  /// [ssid] Network name (SSID) to connect to.
+  /// [deviceId] Device ID to build SSID from.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
   ///
   /// Returns true if connection request was sent successfully, false otherwise.
-  Future<bool> connectWithSSID(String ssid,
+  Future<bool> connectWithDeviceId(String deviceId,
       {String passphrase = "KhJ10287SbGa"}) {
-    throw UnimplementedError('connectWithSSID() has not been implemented.');
+    throw UnimplementedError('connectWithDeviceId() has not been implemented.');
   }
 
   /// Creates a WiFi Direct group with optional operating frequency.

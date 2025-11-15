@@ -80,15 +80,15 @@ class NearbyAndroidService extends NearbyService {
   }
 
   ///
-  /// Connects to a device using SSID and passphrase.
+  /// Connects to a device using device ID and passphrase.
   ///
-  /// [ssid] Network name (SSID) to connect to.
+  /// [deviceId] Device ID to build SSID from.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
   ///
-  Future<bool> connectWithSSID(String ssid,
+  Future<bool> connectWithDeviceId(String deviceId,
       {String passphrase = "KhJ10287SbGa"}) {
     return NearbyServiceAndroidPlatform.instance
-        .connectWithSSID(ssid, passphrase: passphrase);
+        .connectWithDeviceId(deviceId, passphrase: passphrase);
   }
 
   ///
