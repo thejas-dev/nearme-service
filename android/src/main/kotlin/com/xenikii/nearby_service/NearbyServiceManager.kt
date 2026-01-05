@@ -408,7 +408,7 @@ class NearbyServiceManager(private var context: Context) {
                     WifiP2pConfig.Builder()
                             .setNetworkName(networkName)
                             .setPassphrase(passphrase)
-                            .setGroupOperatingFrequency(5805)
+                            .setGroupOperatingFrequency(5180)
                             .enablePersistentMode(false)
                             .build()
 
@@ -492,7 +492,7 @@ class NearbyServiceManager(private var context: Context) {
                     WifiP2pConfig.Builder()
                             .setNetworkName(ssid)
                             .setPassphrase(passphrase)
-                            .setGroupOperatingFrequency(5805)
+                            .setGroupOperatingFrequency(5180)
                             .enablePersistentMode(false)
                             .build()
 
