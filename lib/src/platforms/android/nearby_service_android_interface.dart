@@ -55,7 +55,7 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   ///
   /// [deviceId] Device ID to build SSID from.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
-  /// [frequency] Operating frequency in MHz. Defaults to 5180 (5GHz) if not provided.
+  /// [frequency] Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided.
   ///
   /// Returns true if connection request was sent successfully, false otherwise.
   Future<bool> connectWithDeviceId(String deviceId,
@@ -78,7 +78,7 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   ///
   /// [deviceId] Device ID to include in the network name.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
-  /// [frequency] Operating frequency in MHz. Defaults to 5180 (5GHz) if not provided.
+  /// [frequency] Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided.
   ///
   /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
   ///
