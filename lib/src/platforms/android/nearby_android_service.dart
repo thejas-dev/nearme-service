@@ -84,11 +84,12 @@ class NearbyAndroidService extends NearbyService {
   ///
   /// [deviceId] Device ID to build SSID from.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+  /// [frequency] Operating frequency in MHz. Defaults to 5180 (5GHz) if not provided.
   ///
   Future<bool> connectWithDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa"}) {
+      {String passphrase = "KhJ10287SbGa", int? frequency}) {
     return NearbyServiceAndroidPlatform.instance
-        .connectWithDeviceId(deviceId, passphrase: passphrase);
+        .connectWithDeviceId(deviceId, passphrase: passphrase, frequency: frequency);
   }
 
   ///
@@ -214,14 +215,16 @@ class NearbyAndroidService extends NearbyService {
   ///
   /// [deviceId] Device ID to include in the network name.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+  /// [frequency] Operating frequency in MHz. Defaults to 5180 (5GHz) if not provided.
   ///
   /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
   ///
   Future<bool> createGroupFromDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa"}) {
+      {String passphrase = "KhJ10287SbGa", int? frequency}) {
     return NearbyServiceAndroidPlatform.instance.createGroupFromDeviceId(
       deviceId,
       passphrase: passphrase,
+      frequency: frequency,
     );
   }
 

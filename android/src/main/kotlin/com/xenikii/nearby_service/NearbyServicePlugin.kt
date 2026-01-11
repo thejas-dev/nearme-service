@@ -163,7 +163,8 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     manager.connectWithDeviceId(
                             result,
                             call.argument("deviceId") ?: "",
-                            call.argument("passphrase") ?: "KhJ10287SbGa"
+                            call.argument("passphrase") ?: "KhJ10287SbGa",
+                            call.argument<Int>("frequency")
                     )
                 } catch (e: Exception) {
                     onError(result, e)
@@ -196,7 +197,8 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     manager.createGroupFromDeviceId(
                             result,
                             call.argument("deviceId") ?: "",
-                            call.argument("passphrase") ?: "KhJ10287SbGa"
+                            call.argument("passphrase") ?: "KhJ10287SbGa",
+                            call.argument<Int>("frequency")
                     )
                 } catch (e: Exception) {
                     onError(result, e)

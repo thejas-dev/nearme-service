@@ -393,22 +393,25 @@ class NearbyServiceManager(private var context: Context) {
      * @param result MethodChannel.Result to send the operation result.
      * @param deviceId Device ID to include in the network name.
      * @param passphrase Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+     * @param frequency Operating frequency in MHz. Defaults to 5180 (5GHz) if not provided.
      */
     fun createGroupFromDeviceId(
             result: Result,
             deviceId: String,
-            passphrase: String = "KhJ10287SbGa"
+            passphrase: String = "KhJ10287SbGa",
+            frequency: Int? = null
     ) {
         if (!checkInitialization(result)) return
 
         try {
             val networkName = buildSSIDFromDeviceId(deviceId)
+            val operatingFrequency = frequency ?: 5180
 
             val config =
                     WifiP2pConfig.Builder()
                             .setNetworkName(networkName)
                             .setPassphrase(passphrase)
-                            .setGroupOperatingFrequency(5180)
+                            .setGroupOperatingFrequency(operatingFrequency)
                             .enablePersistentMode(false)
                             .build()
 
@@ -482,17 +485,19 @@ class NearbyServiceManager(private var context: Context) {
      * @param result MethodChannel.Result to send the operation result.
      * @param deviceId Device ID to build SSID from.
      * @param passphrase Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
+     * @param frequency Operating frequency in MHz. Defaults to 5180 (5GHz) if not provided.
      */
-    fun connectWithDeviceId(result: Result, deviceId: String, passphrase: String = "KhJ10287SbGa") {
+    fun connectWithDeviceId(result: Result, deviceId: String, passphrase: String = "KhJ10287SbGa", frequency: Int? = null) {
         if (!checkInitialization(result)) return
 
         try {
             val ssid = buildSSIDFromDeviceId(deviceId)
+            val operatingFrequency = frequency ?: 5180
             val config =
                     WifiP2pConfig.Builder()
                             .setNetworkName(ssid)
                             .setPassphrase(passphrase)
-                            .setGroupOperatingFrequency(5180)
+                            .setGroupOperatingFrequency(operatingFrequency)
                             .enablePersistentMode(false)
                             .build()
 
