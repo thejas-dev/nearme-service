@@ -121,6 +121,13 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
+            "getGroupOperatingFrequency" -> {
+                try {
+                    manager.getGroupOperatingFrequency(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             "addLocalService" -> {
                 try {
                     manager.addLocalService(
@@ -164,7 +171,8 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             result,
                             call.argument("deviceId") ?: "",
                             call.argument("passphrase") ?: "KhJ10287SbGa",
-                            call.argument<Int>("frequency")
+                            call.argument<Int>("frequency"),
+                            call.argument<Boolean>("use5GHz") ?: true
                     )
                 } catch (e: Exception) {
                     onError(result, e)
@@ -198,7 +206,8 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             result,
                             call.argument("deviceId") ?: "",
                             call.argument("passphrase") ?: "KhJ10287SbGa",
-                            call.argument<Int>("frequency")
+                            call.argument<Int>("frequency"),
+                            call.argument<Boolean>("use5GHz") ?: true
                     )
                 } catch (e: Exception) {
                     onError(result, e)

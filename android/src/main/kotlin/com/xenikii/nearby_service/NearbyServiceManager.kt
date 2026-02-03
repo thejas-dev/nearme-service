@@ -3,6 +3,7 @@ package com.xenikii.nearby_service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.wifi.WifiAvailableChannel
 import android.net.wifi.WifiManager
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
@@ -343,6 +344,43 @@ class NearbyServiceManager(private var context: Context) {
     }
 
     /**
+     * Gets the operating frequency of the WiFi Direct group in MHz.
+     *
+     * @param result MethodChannel.Result to send the operation result.
+     * Returns the frequency in MHz if a group is formed, null otherwise.
+     */
+    fun getGroupOperatingFrequency(result: Result) {
+        if (!checkInitialization(result)) return
+
+        try {
+            wifiManager.requestGroupInfo(wifiChannel) { group ->
+                if (group != null) {
+                    val frequency = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        group.getFrequency()
+                    } else {
+                        // For API < 29, frequency information is not available
+                        null
+                    }
+                    Logger.i("Group operating frequency: ${frequency ?: "Not available (API < 29)"}")
+                    result.success(frequency)
+                } else {
+                    Logger.w("No WiFi Direct group is currently formed")
+                    result.success(null)
+                }
+            }
+        } catch (e: SecurityException) {
+            if (!permissionsHandler.checkPermissions()) {
+                Logger.e("No permission to call 'getGroupOperatingFrequency'")
+                permissionsHandler.requestPermissions()
+                result.success(null)
+            }
+        } catch (e: Exception) {
+            Logger.e("Error in getGroupOperatingFrequency: ${e.message}")
+            result.error("ERROR", "Failed to get group operating frequency: ${e.message}", null)
+        }
+    }
+
+    /**
      * Creates a WiFi Direct group with optional operating frequency.
      *
      * @param result MethodChannel.Result to send the operation result.
@@ -393,25 +431,31 @@ class NearbyServiceManager(private var context: Context) {
      * @param result MethodChannel.Result to send the operation result.
      * @param deviceId Device ID to include in the network name.
      * @param passphrase Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
-     * @param frequency Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided.
+     * @param frequency Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided. (Ignored - use use5GHz instead)
+     * @param use5GHz If true, sets 5GHz operating band, otherwise 2.4GHz. Defaults to true.
      */
     fun createGroupFromDeviceId(
             result: Result,
             deviceId: String,
             passphrase: String = "KhJ10287SbGa",
-            frequency: Int? = null
+            frequency: Int? = null,
+            use5GHz: Boolean = true
     ) {
         if (!checkInitialization(result)) return
 
         try {
             val networkName = buildSSIDFromDeviceId(deviceId)
-            val operatingFrequency = frequency ?: 5765
+            val operatingBand = if (use5GHz) {
+                WifiP2pConfig.GROUP_OWNER_BAND_5GHZ
+            } else {
+                WifiP2pConfig.GROUP_OWNER_BAND_2GHZ
+            }
 
             val config =
                     WifiP2pConfig.Builder()
                             .setNetworkName(networkName)
                             .setPassphrase(passphrase)
-                            .setGroupOperatingFrequency(operatingFrequency)
+                            .setGroupOperatingBand(operatingBand)
                             .enablePersistentMode(false)
                             .build()
 
@@ -485,19 +529,24 @@ class NearbyServiceManager(private var context: Context) {
      * @param result MethodChannel.Result to send the operation result.
      * @param deviceId Device ID to build SSID from.
      * @param passphrase Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
-     * @param frequency Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided.
+     * @param frequency Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided. (Ignored - use use5GHz instead)
+     * @param use5GHz If true, sets 5GHz operating band, otherwise 2.4GHz. Defaults to true.
      */
-    fun connectWithDeviceId(result: Result, deviceId: String, passphrase: String = "KhJ10287SbGa", frequency: Int? = null) {
+    fun connectWithDeviceId(result: Result, deviceId: String, passphrase: String = "KhJ10287SbGa", frequency: Int? = null, use5GHz: Boolean = true) {
         if (!checkInitialization(result)) return
 
         try {
             val ssid = buildSSIDFromDeviceId(deviceId)
-            val operatingFrequency = frequency ?: 5765
+            val operatingBand = if (use5GHz) {
+                WifiP2pConfig.GROUP_OWNER_BAND_5GHZ
+            } else {
+                WifiP2pConfig.GROUP_OWNER_BAND_2GHZ
+            }
             val config =
                     WifiP2pConfig.Builder()
                             .setNetworkName(ssid)
                             .setPassphrase(passphrase)
-                            .setGroupOperatingFrequency(operatingFrequency)
+                            .setGroupOperatingBand(operatingBand)
                             .enablePersistentMode(false)
                             .build()
 

@@ -39,6 +39,20 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError('getConnectionInfo() has not been implemented.');
   }
 
+  /// Gets the operating frequency of the WiFi Direct group in MHz.
+  ///
+  /// Returns the frequency in MHz if a group is formed, null otherwise.
+  /// Requires Android 10+ (API 29+) to get frequency information.
+  ///
+  /// Returns null if:
+  /// - No group is currently formed
+  /// - API level is less than 29
+  /// - An error occurred
+  Future<int?> getGroupOperatingFrequency() {
+    throw UnimplementedError(
+        'getGroupOperatingFrequency() has not been implemented.');
+  }
+
   Future<bool> discover() {
     throw UnimplementedError('discover() has not been implemented.');
   }
@@ -55,11 +69,12 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   ///
   /// [deviceId] Device ID to build SSID from.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
-  /// [frequency] Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided.
+  /// [frequency] Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided. (Ignored - use use5GHz instead)
+  /// [use5GHz] If true, sets 5GHz operating band, otherwise 2.4GHz. Defaults to true.
   ///
   /// Returns true if connection request was sent successfully, false otherwise.
   Future<bool> connectWithDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency}) {
+      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) {
     throw UnimplementedError('connectWithDeviceId() has not been implemented.');
   }
 
@@ -78,13 +93,14 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   ///
   /// [deviceId] Device ID to include in the network name.
   /// [passphrase] Passphrase for the network. Defaults to "KhJ10287SbGa" if not provided.
-  /// [frequency] Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided.
+  /// [frequency] Operating frequency in MHz. Defaults to 5765 (5GHz) if not provided. (Ignored - use use5GHz instead)
+  /// [use5GHz] If true, sets 5GHz operating band, otherwise 2.4GHz. Defaults to true.
   ///
   /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
   ///
   /// Returns true if group creation started successfully, false otherwise.
   Future<bool> createGroupFromDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency}) {
+      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) {
     throw UnimplementedError(
         'createGroupFromDeviceId() has not been implemented.');
   }

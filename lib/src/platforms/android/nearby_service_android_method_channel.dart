@@ -41,6 +41,12 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
   }
 
   @override
+  Future<int?> getGroupOperatingFrequency() async {
+    final result = await methodChannel.invokeMethod('getGroupOperatingFrequency');
+    return ResultHandler.instance.handle<int?>(result);
+  }
+
+  @override
   Future<bool> discover() async {
     final result = await methodChannel.invokeMethod('discover');
     return ResultHandler.instance.handle<bool?>(result) ?? false;
@@ -80,10 +86,11 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
 
   @override
   Future<bool> connectWithDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency}) async {
+      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) async {
     final arguments = <String, dynamic>{
       "deviceId": deviceId,
       "passphrase": passphrase,
+      "use5GHz": use5GHz,
     };
     if (frequency != null) {
       arguments["frequency"] = frequency;
@@ -118,10 +125,11 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
 
   @override
   Future<bool> createGroupFromDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency}) async {
+      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) async {
     final arguments = <String, dynamic>{
       "deviceId": deviceId,
       "passphrase": passphrase,
+      "use5GHz": use5GHz,
     };
     if (frequency != null) {
       arguments["frequency"] = frequency;
