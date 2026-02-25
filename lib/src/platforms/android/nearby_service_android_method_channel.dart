@@ -42,7 +42,8 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
 
   @override
   Future<int?> getGroupOperatingFrequency() async {
-    final result = await methodChannel.invokeMethod('getGroupOperatingFrequency');
+    final result =
+        await methodChannel.invokeMethod('getGroupOperatingFrequency');
     return ResultHandler.instance.handle<int?>(result);
   }
 
@@ -86,7 +87,9 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
 
   @override
   Future<bool> connectWithDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) async {
+      {String passphrase = "KhJ10287SbGa",
+      int? frequency,
+      bool use5GHz = true}) async {
     final arguments = <String, dynamic>{
       "deviceId": deviceId,
       "passphrase": passphrase,
@@ -125,7 +128,9 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
 
   @override
   Future<bool> createGroupFromDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) async {
+      {String passphrase = "KhJ10287SbGa",
+      int? frequency,
+      bool use5GHz = true}) async {
     final arguments = <String, dynamic>{
       "deviceId": deviceId,
       "passphrase": passphrase,
@@ -188,5 +193,11 @@ class MethodChannelAndroidNearbyService extends NearbyServiceAndroidPlatform {
             NearbyConnectionInfoMapper.mapToInfo(e),
           ),
         );
+  }
+
+  @override
+  Future<bool> resetWifiDirect() async {
+    final result = await methodChannel.invokeMethod("resetWifiDirect");
+    return ResultHandler.instance.handle<bool?>(result) ?? false;
   }
 }

@@ -29,6 +29,9 @@ class NearbyServiceManager(private var context: Context) {
     private var permissionsHandler = NearbyServicePermissionsHandler(context)
     private var activityPluginBinding: ActivityPluginBinding? = null
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile private var resetInProgress = false
+
     /**
      * Sets [binding] to [activityPluginBinding] and [permissionsHandler]. Adds permissions result
      * listener to [binding].
@@ -585,6 +588,102 @@ class NearbyServiceManager(private var context: Context) {
                         "Failed to cancel the last connection process"
                 )
         wifiManager.cancelConnect(wifiChannel, actionListener)
+    }
+
+    fun resetWifiDirect(result: Result? = null) {
+        if (!checkInitialization(result)) return
+        if (resetInProgress) {
+            Logger.w("resetWifiDirect() ignored - already in progress")
+            result?.success(true)
+            return
+        }
+
+        resetInProgress = true
+        Logger.w("Starting Wi-Fi Direct reset sequence...")
+
+        // Step A: stop discovery (best effort)
+        try {
+            wifiManager.stopPeerDiscovery(wifiChannel, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    Logger.i("stopPeerDiscovery: success")
+                    stepCancelConnectThenRemoveGroup(result)
+                }
+                override fun onFailure(reason: Int) {
+                    Logger.w("stopPeerDiscovery: failure reason=$reason (continuing)")
+                    stepCancelConnectThenRemoveGroup(result)
+                }
+            })
+        } catch (t: Throwable) {
+            Logger.w("stopPeerDiscovery threw: ${t.message} (continuing)")
+            stepCancelConnectThenRemoveGroup(result)
+        }
+    }
+
+    private fun stepCancelConnectThenRemoveGroup(result: Result?) {
+        // Step B: cancelConnect (best effort)
+        try {
+            wifiManager.cancelConnect(wifiChannel, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    Logger.i("cancelConnect: success")
+                    stepRemoveGroupWithRetry(result, attempt = 1)
+                }
+                override fun onFailure(reason: Int) {
+                    Logger.w("cancelConnect: failure reason=$reason (continuing)")
+                    stepRemoveGroupWithRetry(result, attempt = 1)
+                }
+            })
+        } catch (t: Throwable) {
+            Logger.w("cancelConnect threw: ${t.message} (continuing)")
+            stepRemoveGroupWithRetry(result, attempt = 1)
+        }
+    }
+
+    private fun stepRemoveGroupWithRetry(result: Result?, attempt: Int) {
+        // Step C: removeGroup (this is the key); BUSY is common, so retry.
+        val maxAttempts = 5
+        val backoffMs = (attempt * 400L).coerceAtMost(2000L)
+
+        try {
+            wifiManager.removeGroup(wifiChannel, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    Logger.i("removeGroup: success")
+                    stepReinitializeChannel(result)
+                }
+
+                override fun onFailure(reason: Int) {
+                    Logger.w("removeGroup: failure reason=$reason attempt=$attempt")
+
+                    if (attempt < maxAttempts) {
+                        mainHandler.postDelayed(
+                            { stepRemoveGroupWithRetry(result, attempt + 1) },
+                            backoffMs
+                        )
+                    } else {
+                        Logger.e("removeGroup failed after $maxAttempts attempts; still reinit channel")
+                        stepReinitializeChannel(result)
+                    }
+                }
+            })
+        } catch (t: Throwable) {
+            Logger.w("removeGroup threw: ${t.message}")
+            stepReinitializeChannel(result)
+        }
+    }
+
+    private fun stepReinitializeChannel(result: Result?) {
+        try {
+            // Unregister + re-register receiver (best effort)
+            try { context.unregisterReceiver(receiver) } catch (_: Throwable) {}
+            wifiChannel = wifiManager.initialize(context, Looper.getMainLooper(), null)
+            initReceiver()
+            Logger.i("Reinitialized channel + receiver")
+        } catch (t: Throwable) {
+            Logger.w("Reinit channel+receiver threw: ${t.message}")
+        } finally {
+            resetInProgress = false
+            Logger.w("Wi-Fi Direct reset sequence completed")
+            result?.success(true)
+        }
     }
 
     private fun addWifiActions() {

@@ -78,4 +78,8 @@ abstract class NearbyServicePlatform extends PlatformInterface {
   Future<bool> disconnect(NearbyDevice device) {
     throw UnimplementedError('disconnect() has not been implemented.');
   }
+
+  Future<bool> resetWifiDirect() {
+    throw UnimplementedError('resetWifiDirect() has not been implemented.');
+  }
 }

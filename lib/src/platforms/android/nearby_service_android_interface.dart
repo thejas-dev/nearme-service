@@ -74,7 +74,9 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   ///
   /// Returns true if connection request was sent successfully, false otherwise.
   Future<bool> connectWithDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) {
+      {String passphrase = "KhJ10287SbGa",
+      int? frequency,
+      bool use5GHz = true}) {
     throw UnimplementedError('connectWithDeviceId() has not been implemented.');
   }
 
@@ -100,7 +102,9 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
   ///
   /// Returns true if group creation started successfully, false otherwise.
   Future<bool> createGroupFromDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) {
+      {String passphrase = "KhJ10287SbGa",
+      int? frequency,
+      bool use5GHz = true}) {
     throw UnimplementedError(
         'createGroupFromDeviceId() has not been implemented.');
   }
@@ -180,5 +184,9 @@ abstract class NearbyServiceAndroidPlatform extends PlatformInterface {
     throw UnimplementedError(
       'isChannelConstrainedDiscoverySupported() has not been implemented.',
     );
+  }
+
+  Future<bool> resetWifiDirect() {
+    throw UnimplementedError('resetWifiDirect() has not been implemented.');
   }
 }

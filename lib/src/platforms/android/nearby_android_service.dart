@@ -88,9 +88,11 @@ class NearbyAndroidService extends NearbyService {
   /// [use5GHz] If true, sets 5GHz operating band, otherwise 2.4GHz. Defaults to true.
   ///
   Future<bool> connectWithDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) {
-    return NearbyServiceAndroidPlatform.instance
-        .connectWithDeviceId(deviceId, passphrase: passphrase, frequency: frequency, use5GHz: use5GHz);
+      {String passphrase = "KhJ10287SbGa",
+      int? frequency,
+      bool use5GHz = true}) {
+    return NearbyServiceAndroidPlatform.instance.connectWithDeviceId(deviceId,
+        passphrase: passphrase, frequency: frequency, use5GHz: use5GHz);
   }
 
   ///
@@ -237,7 +239,9 @@ class NearbyAndroidService extends NearbyService {
   /// The network name will be in the format: "Direct-mira-<deviceId>DDD<6 random characters>"
   ///
   Future<bool> createGroupFromDeviceId(String deviceId,
-      {String passphrase = "KhJ10287SbGa", int? frequency, bool use5GHz = true}) {
+      {String passphrase = "KhJ10287SbGa",
+      int? frequency,
+      bool use5GHz = true}) {
     return NearbyServiceAndroidPlatform.instance.createGroupFromDeviceId(
       deviceId,
       passphrase: passphrase,
@@ -292,5 +296,10 @@ class NearbyAndroidService extends NearbyService {
   @override
   Future<dynamic> renameDevice(String newName) {
     return NearbyServiceAndroidPlatform.instance.renameDevice(newName);
+  }
+
+  @override
+  Future<bool> resetWifiDirect() {
+    return NearbyServiceAndroidPlatform.instance.resetWifiDirect();
   }
 }

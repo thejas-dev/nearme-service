@@ -361,6 +361,12 @@ abstract class NearbyService {
   Future<dynamic> removeLocalServices();
 
   Future<dynamic> renameDevice(String newName);
+
+  ///
+  /// Forces a hardware reset of the Wi-Fi Direct interface in Android.
+  /// This is useful when the interface gets completely stuck.
+  ///
+  Future<bool> resetWifiDirect();
 }
 
 extension NearbyServiceGetterExtension on NearbyService {

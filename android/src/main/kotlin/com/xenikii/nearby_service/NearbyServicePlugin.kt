@@ -229,6 +229,13 @@ class NearbyServicePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     onError(result, e)
                 }
             }
+            "resetWifiDirect" -> {
+                try {
+                    manager.resetWifiDirect(result)
+                } catch (e: Exception) {
+                    onError(result, e)
+                }
+            }
             else -> {
                 result.notImplemented()
             }

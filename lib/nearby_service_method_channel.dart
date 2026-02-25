@@ -113,4 +113,10 @@ class MethodChannelNearbyService extends NearbyServicePlatform {
       }
     });
   }
+
+  @override
+  Future<bool> resetWifiDirect() async {
+    final result = await methodChannel.invokeMethod('resetWifiDirect');
+    return ResultHandler.instance.handle<bool?>(result) ?? false;
+  }
 }
